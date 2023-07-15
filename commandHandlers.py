@@ -3,7 +3,8 @@ from telebot import types
 from kachok import Kachok
 from staticText import *
 from botInstance import bot
-from data import kachki, user_dict, vip_members, updateRecords
+from data import kachki, user_dict, vip_members, updateRecords, get_sorted
+
 
 # done
 @bot.message_handler(commands=['start', 'начать'])
@@ -34,28 +35,21 @@ def grading(user):
 
 
 # done
-def do_some_sorting(members):
-    """function that sort dictionary by protein points of values, used for sort top"""
-    members = dict(sorted(members.items(), key=lambda item: item[1].proteinPoints, reverse=True))
-    return members
-
-
-# done
 @bot.message_handler(commands=['top'])
 def top(user):
     """function that display top"""
     global kachki
-    c = 0
-    s = ""
+    counter = 0
+    result = ''
     # display all members
-    for i in kachki:
-        c += 1
-        s += str(c) + " " + kachki.get(i).display() + '\n'
+    for i in get_sorted(kachki):
+        result += str(counter + 1) + " " + i.display() + '\n'
+        counter += 1
     # in case top empty send message indicating about
-    if s == '':
+    if result == '':
         bot.send_message(user.chat.id, emptyTop)
     else:
-        bot.send_message(user.chat.id, s)
+        bot.send_message(user.chat.id, result)
 
 
 # done

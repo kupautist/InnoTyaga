@@ -109,3 +109,15 @@ class KachokEncoder(json.JSONEncoder):
         if isinstance(obj, dict):
             return {k: self.default(v) for k, v in obj.items()}  # Recursively encode dictionary values
         return super().default(obj)
+
+
+def kachok_decoder(jo) -> Kachok:
+    member = Kachok(jo['alias'], jo['name'])
+    member.female = jo['female']
+    member.selfWeight = jo['selfWeight']
+    member.weight = jo['weight']
+    member.proteinPoints = jo['proteinPoints']
+    member.mark = jo['mark']
+    member.proteinPointsByDate = jo['proteinPointsByDate']
+    member.weightByDate = jo['weightByDate']
+    return member
