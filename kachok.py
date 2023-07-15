@@ -33,8 +33,17 @@ class Kachok:
             self.proteinPoints *= 1.64
             for i in self.proteinPointsByDate:
                 self.proteinPointsByDate[i] *= 1.64
-        self.female = True
-        self.grade()
+            self.female = True
+            self.grade()
+
+    def make_male(self):
+        """function that can be helpful if extra * added while adding male member"""
+        if self.female:
+            self.proteinPoints /= 1.64
+            for i in self.proteinPointsByDate:
+                self.proteinPointsByDate[i] /= 1.64
+            self.female = False
+            self.grade()
 
     def grade(self):
         """function that update member grade"""
