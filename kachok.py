@@ -97,3 +97,15 @@ class Kachok:
         information_2 = str(int(self.proteinPoints * 100)) + ' PP ' + self.mark
         information = information_1 + information_2
         return information
+
+
+import json
+class KachokEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, Kachok):
+            return obj.__dict__  # Convert Kachok object to a dictionary
+        if isinstance(obj, list):
+            return [self.default(item) for item in obj]  # Recursively encode list items
+        if isinstance(obj, dict):
+            return {k: self.default(v) for k, v in obj.items()}  # Recursively encode dictionary values
+        return super().default(obj)
