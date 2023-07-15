@@ -56,4 +56,10 @@ def updateRecords():
 
 
 # Load Kachki
-kachki = {m.alias : m for m in [kachok_decoder(mem) for mem in loadData()]}
+try:
+    kachki = {m.alias : m for m in [kachok_decoder(mem) for mem in loadData()]}
+except Exception as e:
+    logging.error('Unable to load kachki from JSON')
+    logging.error(e)
+    kachki = {}
+    open('kachki.json', 'w').write('[]')
