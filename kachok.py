@@ -1,4 +1,7 @@
 import time
+import json
+
+
 class Kachok:
     """class for all club members"""
     # alias and name enough to initialize member, other information can be added later
@@ -97,9 +100,15 @@ class Kachok:
         information_2 = str(int(self.proteinPoints * 100)) + ' PP ' + self.mark
         information = information_1 + information_2
         return information
+    def profile(self):
+        info1 = self.name + ' ' + self.alias + '\n'
+        info2 = ''
+        for i in self.proteinPointsByDate:
+            info2 += str(i) + ' ты пожал ' + str(self.weightByDate[i]) + ' и набрал ' + str(int(self.proteinPointsByDate[i]*100)) + 'PP\n'
+        info = info1 + info2
+        return info
 
 
-import json
 class KachokEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, Kachok):

@@ -1,6 +1,7 @@
 # Custom files
 *.json
 vip.txt
+/test.ipynb
 
 # Python
 # Byte-compiled / optimized / DLL files

@@ -3,38 +3,33 @@ from telebot import types
 from kachok import Kachok
 from staticText import *
 from botInstance import bot
-from data import kachki, user_dict, vip_members, updateRecords, get_sorted
+from data import kachki, user_dict, vip_members, update_records, get_sorted, do_some_sorting
 
 
-# done
 @bot.message_handler(commands=['start', 'начать'])
 def start(user):
     """function that greets the user"""
     bot.send_message(user.chat.id, f'Здарова, {user.from_user.first_name} {user.from_user.last_name}' + greet)
 
 
-# done
 @bot.message_handler(commands=['help', 'помощь'])
 def commands_list(user):
     """function that send to user list of possible commands and their description"""
     bot.send_message(user.chat.id, commands)
 
 
-# done
 @bot.message_handler(commands=['schedule'])
 def schedule(user):
     """function that send to user schedule of club meetings"""
     bot.send_message(user.chat.id, schedule_)
 
 
-# done
 @bot.message_handler(commands=['pp'])
 def grading(user):
     """function that send to user grading information"""
     bot.send_message(user.chat.id, pp)
 
 
-# done
 @bot.message_handler(commands=['top'])
 def top(user):
     """function that display top"""
@@ -42,7 +37,8 @@ def top(user):
     counter = 0
     result = ''
     # display all members
-    for i in get_sorted(kachki):
+    leaderboard = get_sorted(kachki)
+    for i in leaderboard:
         result += str(counter + 1) + " " + i.display() + '\n'
         counter += 1
     # in case top empty send message indicating about
@@ -52,7 +48,6 @@ def top(user):
         bot.send_message(user.chat.id, result)
 
 
-# done
 @bot.message_handler(commands=['register'])
 def register(user):
     """function that add to top member who send "/register" message"""
@@ -68,7 +63,7 @@ def register(user):
             member = Kachok(alias, name)
             kachki[alias] = member
             bot.send_message(user.chat.id, newMemberSuccess)
-            updateRecords()
+            update_records()
         # if user already in top report about it
         else:
             bot.send_message(user.chat.id, newMemberFail)
@@ -78,7 +73,27 @@ def register(user):
         bot.send_message(user.chat.id, regProblem)
 
 
-# done
+@bot.message_handler(commands=['profile'])
+def profile(user):
+    """function that display personal member profile"""
+    global kachki
+    try:
+        # function takes alias and name of user who send this command
+        alias = user.from_user.username
+        alias = '@' + alias
+        alias = alias.lower()
+        if alias not in kachki:
+            bot.send_message(user.chat.id, reg)
+        # if user already in top report about it
+        else:
+            info = kachki.get(alias).profile()
+            bot.send_message(user.chat.id, info)
+    # report about if happen something unexpected
+    except Exception as e:
+        logging.error(e)
+        bot.send_message(user.chat.id, regProblem)
+
+
 @bot.message_handler(commands=['olduser'])
 def old_user(user):
     """part 1 of function that add to top old member"""
@@ -168,8 +183,7 @@ def olduser_answer_4(user):
         member.set_weight(weight)
         kachki[alias] = member
         bot.send_message(user.chat.id, newMemberSuccess)
-        # sort top
-        updateRecords()
+        update_records()
     # report about if happen something unexpected
     except Exception as e:
         logging.error(e)
@@ -177,7 +191,6 @@ def olduser_answer_4(user):
     user_dict[user.chat.id] = ''
 
 
-# done
 @bot.message_handler(commands=['changename'])
 def change_name(user):
     """function that change member's name"""
@@ -234,6 +247,7 @@ def change_name_answer_2(user):
         alias = alias.lower()
         # name changed
         kachki.get(alias).set_name(name)
+        update_records()
         bot.send_message(user.chat.id, success)
     # report about if happen something unexpected
     except Exception as e:
@@ -242,7 +256,6 @@ def change_name_answer_2(user):
     user_dict[user.chat.id] = ''
 
 
-# done
 @bot.message_handler(commands=['makefemale'])
 def make_female(user):
     """function that can be helpful if * forgotten while adding female member"""
@@ -277,6 +290,7 @@ def make_female_answer(user):
         alias = user_dict[user.chat.id]
         # make member female
         kachki.get(alias).make_female()
+        update_records()
         bot.send_message(user.chat.id, success)
     # report about if happen something unexpected
     except Exception as e:
@@ -285,7 +299,6 @@ def make_female_answer(user):
     user_dict[user.chat.id] = ''
 
 
-# done
 @bot.message_handler(commands=['setweight'])
 def set_weight(user):
     """function that used to change member weight"""
@@ -335,8 +348,8 @@ def set_weight_answer_2(user):
         alias = user_dict[user.chat.id]
         # weight changed
         kachki.get(alias).set_weight(user.text)
-        # sort top
-        updateRecords()
+        # update json record
+        update_records()
         bot.send_message(user.chat.id, success)
     # report about if happen something unexpected
     except Exception as e:
@@ -345,7 +358,6 @@ def set_weight_answer_2(user):
     user_dict[user.chat.id] = ''
 
 
-# done
 @bot.message_handler(commands=['setselfweight'])
 def set_self_weight(user):
     """function for changing member self weight"""
@@ -394,6 +406,7 @@ def setselfweight_answer_2(user):
         alias = user_dict[user.chat.id]
         # self weight changed
         kachki.get(alias).set_self_weight(user.text)
+        update_records()
         bot.send_message(user.chat.id, success)
     # report about if happen something unexpected
     except Exception as e:
@@ -402,7 +415,6 @@ def setselfweight_answer_2(user):
     user_dict[user.chat.id] = ''
 
 
-# done
 @bot.message_handler(commands=['newuser'])
 def new_user(user):
     """function that add to top new member"""
@@ -436,6 +448,7 @@ def new_user_answer_2(user):
         alias = user_dict[user.chat.id]
         member = Kachok(alias, name)
         kachki[alias] = member
+        update_records()
         bot.send_message(user.chat.id, success)
         # clear user_dict
         user_dict[user.chat.id] = ''
@@ -445,7 +458,6 @@ def new_user_answer_2(user):
         bot.send_message(user.chat.id, exception)
 
 
-# done
 @bot.message_handler(commands=['danilnikulin', 'DanilNikulin'])
 def danil_nikulin(user):
     """DanilNikulin"""
@@ -453,16 +465,15 @@ def danil_nikulin(user):
         bot.send_message(user.chat.id, nikulin)
 
 
-# done
 @bot.message_handler(commands=['sort'])
 def sort_nikulin(user):
     """function that able to call do_some_sorting from telegram"""
     global kachki
-    updateRecords()
+    kachki = do_some_sorting(kachki)
+    update_records()
     bot.send_message(user.chat.id, sorted_end)
 
 
-# done
 @bot.message_handler(commands=['delete'])
 def delete_nikulin(user):
     """function that make able to delete members from top"""
@@ -494,6 +505,7 @@ def delete_answer(user):
     try:
         alias = user.text
         kachki.pop(alias)
+        update_records()
         bot.send_message(user.chat.id, success)
     # report about if happen something unexpected
     except Exception as e:
@@ -501,14 +513,12 @@ def delete_answer(user):
         bot.send_message(user.chat.id, exception)
 
 
-# done
 @bot.message_handler()
 def wrong_command(user):
     """function that send to user information that such command did not exist"""
     bot.send_message(user.chat.id, empty)
 
 
-# done
 @bot.message_handler(content_types=['photo'])
 def photo(user):
     """function that handles photos"""
