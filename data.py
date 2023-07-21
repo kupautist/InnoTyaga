@@ -61,11 +61,15 @@ def load_kachki():
     global kachki
     try:
         kachki = {m.alias : m for m in [kachok_decoder(mem) for mem in load_data()]}
+    except IOError as e:
+        logging.error('Unable to read JSON')
+        logging.error(e)
+        kachki = {}
+        open('kachki.json', 'w').write('[]')
     except Exception as e:
         logging.error('Unable to load kachki from JSON')
         logging.error(e)
         kachki = {}
-        open('kachki.json', 'w').write('[]')
 
 
 load_kachki()

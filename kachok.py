@@ -128,12 +128,12 @@ class KachokEncoder(json.JSONEncoder):
 
 def kachok_decoder(jo) -> Kachok:
     member = Kachok(jo['alias'], jo['name'])
-    member.access = jo['access']
-    member.female = jo['female']
-    member.selfWeight = jo['selfWeight']
-    member.weight = jo['weight']
-    member.proteinPoints = jo['proteinPoints']
-    member.mark = jo['mark']
-    member.proteinPointsByDate = jo['proteinPointsByDate']
-    member.weightByDate = jo['weightByDate']
+    member.access = jo['access'] if 'access' in jo else AccessLvl.MEMBER 
+    member.female = jo['female'] if 'female' in jo else False
+    member.selfWeight = jo['selfWeight'] if 'selfWeight' in jo else 100.0
+    member.weight = jo['weight'] if 'weight' in jo else 0.0
+    member.proteinPoints = jo['proteinPoints'] if 'proteinPoints' in jo else 0.0
+    member.mark = jo['mark'] if 'mark' in jo else '(D)'
+    member.proteinPointsByDate = jo['proteinPointsByDate'] if 'proteinPointsByDate' in jo else {}
+    member.weightByDate = jo['weightByDate'] if 'weightByDate' in jo else {}
     return member
