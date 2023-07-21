@@ -106,6 +106,7 @@ class Kachok:
         information_2 = str(int(self.proteinPoints * 100)) + ' PP ' + self.mark
         information = information_1 + information_2
         return information
+        
     def profile(self):
         info1 = self.name + ' ' + self.alias + '\n'
         info2 = ''
