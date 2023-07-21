@@ -1,5 +1,6 @@
 import time
 import json
+from access import AccessLvl
 
 
 class Kachok:
@@ -17,6 +18,8 @@ class Kachok:
 
         # Telegram alias of club member
         self.alias = alias
+        # Member's current access level
+        self.access = AccessLvl.MEMBER
         # Member's current self weight
         self.selfWeight = 100
         # Member's max weight
@@ -29,6 +32,9 @@ class Kachok:
         self.proteinPointsByDate = {}
         # Dictionary of weights in format date:points
         self.weightByDate = {}
+        # Hardcoded owner
+        if alias == '@kupamonke':
+            self.access = AccessLvl.OWNER
 
     def make_female(self):
         """function that can be helpful if * forgotten while adding female member"""
@@ -122,6 +128,7 @@ class KachokEncoder(json.JSONEncoder):
 
 def kachok_decoder(jo) -> Kachok:
     member = Kachok(jo['alias'], jo['name'])
+    member.access = jo['access']
     member.female = jo['female']
     member.selfWeight = jo['selfWeight']
     member.weight = jo['weight']

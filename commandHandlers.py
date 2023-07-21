@@ -1,9 +1,10 @@
 import logging
 from telebot import types
 from kachok import Kachok
+from access import *
 from staticText import *
 from botInstance import bot
-from data import kachki, user_dict, vip_members, update_records, get_sorted, do_some_sorting
+from data import kachki, user_dict, update_records, get_sorted, Order, load_kachki
 
 
 @bot.message_handler(commands=['start', 'начать'])
@@ -15,7 +16,8 @@ def start(user):
 @bot.message_handler(commands=['help', 'помощь'])
 def commands_list(user):
     """function that send to user list of possible commands and their description"""
-    bot.send_message(user.chat.id, commands)
+    for i in range(0, kachki['@' + user.from_user.username.lower()].access + 1):
+        bot.send_message(user.chat.id, commands[i])
 
 
 @bot.message_handler(commands=['schedule'])
@@ -98,11 +100,11 @@ def profile(user):
 def old_user(user):
     """part 1 of function that add to top old member"""
     # only several users can use this command
-    if user.from_user.username.lower() not in vip_members:
-        bot.send_message(user.chat.id, notInVip)
+    global kachki
+    if not has_access(kachki, user.from_user.username.lower(), AccessLvl.VIP):
+        bot.send_message(user.chat.id, accessDenied)
         return 0
     # member's alias requested
-    global kachki
     msg = bot.reply_to(user, enter_alias)
     bot.register_next_step_handler(msg, olduser_answer)
 
@@ -196,14 +198,13 @@ def change_name(user):
     """function that change member's name"""
     # only several users can use this command
     global kachki
-    if user.from_user.username.lower() not in vip_members:
-        bot.send_message(user.chat.id, notInVip)
+    if not has_access(kachki, user.from_user.username.lower(), AccessLvl.VIP):
+        bot.send_message(user.chat.id, accessDenied)
         return 0
     # add all aliases of all members to reply keyboard
-    global kachki
     rmk = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    for i in kachki:
-        rmk.add(i)
+    for i in get_sorted(kachki, Order.ALPHABETICAL):
+        rmk.add(i.alias)
     # alias requested
     msg = bot.reply_to(user, enter_alias, reply_markup=rmk)
     bot.register_next_step_handler(msg, change_name_answer)
@@ -260,14 +261,14 @@ def change_name_answer_2(user):
 def make_female(user):
     """function that can be helpful if * forgotten while adding female member"""
     # only several users can use this command
-    if user.from_user.username.lower() not in vip_members:
-        bot.send_message(user.chat.id, notInVip)
+    global kachki
+    if not has_access(kachki, user.from_user.username.lower(), AccessLvl.VIP):
+        bot.send_message(user.chat.id, accessDenied)
         return 0
     # add all aliases of all members to reply keyboard
-    global kachki
     rmk = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    for i in kachki:
-        rmk.add(i)
+    for i in get_sorted(kachki, Order.ALPHABETICAL):
+        rmk.add(i.alias)
     # alias requested
     msg = bot.reply_to(user, enter_alias, reply_markup=rmk)
     bot.register_next_step_handler(msg, make_female_answer)
@@ -303,14 +304,14 @@ def make_female_answer(user):
 def set_weight(user):
     """function that used to change member weight"""
     # only several users can use this command
-    if user.from_user.username.lower() not in vip_members:
-        bot.send_message(user.chat.id, notInVip)
+    global kachki
+    if not has_access(kachki, user.from_user.username.lower(), AccessLvl.VIP):
+        bot.send_message(user.chat.id, accessDenied)
         return 0
     # add all aliases of all members to reply keyboard
-    global kachki
     rmk = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    for i in kachki:
-        rmk.add(i)
+    for i in get_sorted(kachki, Order.ALPHABETICAL):
+        rmk.add(i.alias)
     # alias requested
     msg = bot.reply_to(user, enter_alias, reply_markup=rmk)
     bot.register_next_step_handler(msg, set_weight_answer)
@@ -362,14 +363,14 @@ def set_weight_answer_2(user):
 def set_self_weight(user):
     """function for changing member self weight"""
     # only several users can use this command
-    if user.from_user.username.lower() not in vip_members:
-        bot.send_message(user.chat.id, notInVip)
+    global kachki
+    if not has_access(kachki, user.from_user.username.lower(), AccessLvl.VIP):
+        bot.send_message(user.chat.id, accessDenied)
         return 0
     # add all aliases of all members to reply keyboard
-    global kachki
     rmk = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    for i in kachki:
-        rmk.add(i)
+    for i in get_sorted(kachki, Order.ALPHABETICAL):
+        rmk.add(i.alias)
     # alias requested
     msg = bot.reply_to(user, enter_alias, reply_markup=rmk)
     bot.register_next_step_handler(msg, setselfweight_answer)
@@ -419,8 +420,8 @@ def setselfweight_answer_2(user):
 def new_user(user):
     """function that add to top new member"""
     # only several users can use this command
-    if user.from_user.username.lower() not in vip_members:
-        bot.send_message(user.chat.id, notInVip)
+    if not has_access(kachki, user.from_user.username.lower(), AccessLvl.VIP):
+        bot.send_message(user.chat.id, accessDenied)
         return 0
     # alias requested
     msg = bot.reply_to(user, enter_alias)
@@ -465,27 +466,18 @@ def danil_nikulin(user):
         bot.send_message(user.chat.id, nikulin)
 
 
-@bot.message_handler(commands=['sort'])
-def sort_nikulin(user):
-    """function that able to call do_some_sorting from telegram"""
-    global kachki
-    kachki = do_some_sorting(kachki)
-    update_records()
-    bot.send_message(user.chat.id, sorted_end)
-
-
 @bot.message_handler(commands=['delete'])
 def delete_nikulin(user):
     """function that make able to delete members from top"""
     # only several users can use this command
-    if user.from_user.username.lower() not in vip_members:
-        bot.send_message(user.chat.id, notInVip)
+    global kachki
+    if not has_access(kachki, user.from_user.username.lower(), AccessLvl.VIP):
+        bot.send_message(user.chat.id, accessDenied)
         return 0
     # add all aliases of all members to reply keyboard
-    global kachki
     rmk = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    for i in kachki:
-        rmk.add(i)
+    for i in get_sorted(kachki, Order.ALPHABETICAL):
+        rmk.add(i.alias)
     # alias requested
     msg = bot.reply_to(user, enter_alias, reply_markup=rmk)
     bot.register_next_step_handler(msg, delete_answer)
@@ -511,6 +503,63 @@ def delete_answer(user):
     except Exception as e:
         logging.error(e)
         bot.send_message(user.chat.id, exception)
+
+
+@bot.message_handler(commands=['reload'])
+def reload(user):
+    """reloads the data from db"""
+    # only several users can use this command
+    global kachki
+    if not has_access(kachki, user.from_user.username.lower(), AccessLvl.OWNER):
+        bot.send_message(user.chat.id, accessDenied)
+        return 0
+    load_kachki()
+    bot.send_message(user.chat.id, success)
+
+
+@bot.message_handler(commands=['chaccess'])
+def chaccess_nikulin(user):
+    """changes access level of a member"""
+    # only several users can use this command
+    global kachki
+    if not has_access(kachki, user.from_user.username.lower(), AccessLvl.OWNER):
+        bot.send_message(user.chat.id, accessDenied)
+        return 0
+    # add all aliases of all members to reply keyboard
+    rmk = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    for i in get_sorted(kachki, Order.ALPHABETICAL):
+        rmk.add(i.alias)
+    # alias requested
+    msg = bot.reply_to(user, enter_alias, reply_markup=rmk)
+    bot.register_next_step_handler(msg, chaccess_answer)
+
+
+def chaccess_answer(user):
+    if user.text[0] != '@':
+        user_dict[user.chat.id] = '@' + user.text
+    else:
+        user_dict[user.chat.id] = user.text
+    # add all access levels to reply keyboard
+    levels = [i.name for i in AccessLvl]
+    rmk = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    for i in levels:
+        rmk.add(i)
+    # alias requested
+    msg = bot.reply_to(user, enter_alias, reply_markup=rmk)
+    bot.register_next_step_handler(msg, chaccess_answer_2)
+   
+
+def chaccess_answer_2(user):
+    rmk = types.ReplyKeyboardRemove(selective=False)
+    try:
+        alias = user_dict[user.chat.id]
+        kachki[alias].access = access_from_str(user.text)
+        user_dict[user.chat.id] = ''
+        update_records()
+        bot.send_message(user.chat.id, success, reply_markup=rmk)
+    except Exception as e:
+        logging.error(e)
+        bot.send_message(user.chat.id, exception, reply_markup=rmk)
 
 
 @bot.message_handler()
