@@ -16,7 +16,11 @@ def start(user):
 @bot.message_handler(commands=['help', 'помощь'])
 def commands_list(user):
     """function that send to user list of possible commands and their description"""
-    for i in range(0, kachki['@' + user.from_user.username.lower()].access + 1):
+    alias = '@' + user.from_user.username.lower()
+    if alias not in kachki:
+        bot.send_message(user.chat.id, commands[0])
+        return
+    for i in range(0, kachki[alias].access + 1):
         bot.send_message(user.chat.id, commands[i])
 
 
@@ -114,10 +118,10 @@ def olduser_answer(user):
     # alias can be written in both ways: with and without @, next if-else handles both
     # member's alias saved
     if user.text[0] != '@':
-        user_dict[user.chat.id] = '@' + user.text
+        user_dict[user.chat.id] = [].append('@' + user.text)
     else:
-        user_dict[user.chat.id] = user.text
-    if user_dict[user.chat.id] in kachki:
+        user_dict[user.chat.id] = [].append(user.text)
+    if user_dict[user.chat.id][0] in kachki:
         msg = bot.reply_to(user, newMemberFail)
         bot.register_next_step_handler(msg, olduser_answer)
     # member's name requested
@@ -127,19 +131,13 @@ def olduser_answer(user):
 
 def olduser_answer_2(user):
     """part 3 of function that add to top old member"""
-    # check if name include space
-    for i in user.text:
-        if ord(i) == 32:
-            msg = bot.reply_to(user, no_spaces)
-            bot.register_next_step_handler(msg, olduser_answer_2)
-            return 0
     # check if name too long
     if len(user.text) > 16:
         msg = bot.reply_to(user, long_name)
         bot.register_next_step_handler(msg, olduser_answer_2)
         return 0
     # member's name saved
-    user_dict[user.chat.id] += ' ' + user.text
+    user_dict[user.chat.id].append(user.text)
     # member's self weight requested
     msg = bot.reply_to(user, enter_self_weight)
     bot.register_next_step_handler(msg, olduser_answer_3)
@@ -156,7 +154,7 @@ def olduser_answer_3(user):
         bot.register_next_step_handler(msg, olduser_answer_3)
         return 0
     # member's self weight saved
-    user_dict[user.chat.id] += ' ' + user.text
+    user_dict[user.chat.id].append(user.text)
     # member's weight requested
     msg = bot.reply_to(user, enter_weight)
     bot.register_next_step_handler(msg, olduser_answer_4)
@@ -174,10 +172,10 @@ def olduser_answer_4(user):
         bot.register_next_step_handler(msg, olduser_answer_4)
         return 0
     # member's weight saved
-    user_dict[user.chat.id] += ' ' + user.text
+    user_dict[user.chat.id].append(user.text)
     try:
         # saved information taken
-        alias, name, self_weight, weight = user_dict[user.chat.id].split()
+        alias, name, self_weight, weight = user_dict[user.chat.id]
         alias = alias.lower()
         # information about new member added to top
         member = Kachok(alias, name)
@@ -190,7 +188,7 @@ def olduser_answer_4(user):
     except Exception as e:
         logging.error(e)
         bot.send_message(user.chat.id, exception)
-    user_dict[user.chat.id] = ''
+    user_dict[user.chat.id] = None
 
 
 @bot.message_handler(commands=['changename'])
@@ -254,7 +252,7 @@ def change_name_answer_2(user):
     except Exception as e:
         logging.error(e)
         bot.send_message(user.chat.id, exception)
-    user_dict[user.chat.id] = ''
+    user_dict[user.chat.id] = None
 
 
 @bot.message_handler(commands=['makefemale'])
@@ -297,7 +295,7 @@ def make_female_answer(user):
     except Exception as e:
         logging.error(e)
         bot.send_message(user.chat.id, exception)
-    user_dict[user.chat.id] = ''
+    user_dict[user.chat.id] = None
 
 
 @bot.message_handler(commands=['setweight'])
@@ -356,7 +354,7 @@ def set_weight_answer_2(user):
     except Exception as e:
         logging.error(e)
         bot.send_message(user.chat.id, exception)
-    user_dict[user.chat.id] = ''
+    user_dict[user.chat.id] = None
 
 
 @bot.message_handler(commands=['setselfweight'])
@@ -413,7 +411,7 @@ def setselfweight_answer_2(user):
     except Exception as e:
         logging.error(e)
         bot.send_message(user.chat.id, exception)
-    user_dict[user.chat.id] = ''
+    user_dict[user.chat.id] = None
 
 
 @bot.message_handler(commands=['newuser'])
@@ -452,7 +450,7 @@ def new_user_answer_2(user):
         update_records()
         bot.send_message(user.chat.id, success)
         # clear user_dict
-        user_dict[user.chat.id] = ''
+        user_dict[user.chat.id] = None
     # report about if happen something unexpected
     except Exception as e:
         logging.error(e)
@@ -554,7 +552,7 @@ def chaccess_answer_2(user):
     try:
         alias = user_dict[user.chat.id]
         kachki[alias].access = access_from_str(user.text)
-        user_dict[user.chat.id] = ''
+        user_dict[user.chat.id] = None
         update_records()
         bot.send_message(user.chat.id, success, reply_markup=rmk)
     except Exception as e:
