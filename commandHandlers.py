@@ -19,6 +19,7 @@ def commands_list(user):
     alias = '@' + user.from_user.username.lower()
     if alias not in kachki:
         bot.send_message(user.chat.id, commands[0])
+        bot.send_message(user.chat.id, reg)
         return
     for i in range(0, kachki[alias].access + 1):
         bot.send_message(user.chat.id, commands[i])
@@ -60,14 +61,11 @@ def register(user):
     global kachki
     try:
         # function takes alias and name of user who send this command
-        alias = user.from_user.username
-        alias = '@' + alias
-        alias = alias.lower()
+        alias = '@' + user.from_user.username.lower()
         name = user.from_user.first_name
         # add user to top and sort it
         if alias not in kachki:
-            member = Kachok(alias, name)
-            kachki[alias] = member
+            kachki[alias] = Kachok(alias, name)
             bot.send_message(user.chat.id, newMemberSuccess)
             update_records()
         # if user already in top report about it
@@ -85,9 +83,7 @@ def profile(user):
     global kachki
     try:
         # function takes alias and name of user who send this command
-        alias = user.from_user.username
-        alias = '@' + alias
-        alias = alias.lower()
+        alias = '@' + user.from_user.username.lower()
         if alias not in kachki:
             bot.send_message(user.chat.id, reg)
         # if user already in top report about it
@@ -117,10 +113,10 @@ def olduser_answer(user):
     """part 2 of function that add to top old member"""
     # alias can be written in both ways: with and without @, next if-else handles both
     # member's alias saved
-    if user.text[0] != '@':
-        user_dict[user.chat.id] = [].append('@' + user.text)
-    else:
-        user_dict[user.chat.id] = [].append(user.text)
+    global user_dict, kachki
+    alias = '@' + user.text if user.text[0] != '@' else user.text
+    user_dict[user.chat.id] = [alias]
+    print(user_dict[user.chat.id])
     if user_dict[user.chat.id][0] in kachki:
         msg = bot.reply_to(user, newMemberFail)
         bot.register_next_step_handler(msg, olduser_answer)
@@ -132,6 +128,7 @@ def olduser_answer(user):
 def olduser_answer_2(user):
     """part 3 of function that add to top old member"""
     # check if name too long
+    global user_dict
     if len(user.text) > 16:
         msg = bot.reply_to(user, long_name)
         bot.register_next_step_handler(msg, olduser_answer_2)
@@ -146,6 +143,7 @@ def olduser_answer_2(user):
 def olduser_answer_3(user):
     """part 4 of function that add to top old member"""
     # check if self weight format incorrect
+    global user_dict
     try:
         float(user.text)
     except ValueError as e:
@@ -162,7 +160,7 @@ def olduser_answer_3(user):
 
 def olduser_answer_4(user):
     """part 5 of function that add to top old member"""
-    global kachki
+    global user_dict, kachki
     # check if weight format incorrect
     try:
         float(user.text)
@@ -226,24 +224,15 @@ def change_name_answer(user):
 
 def change_name_answer_2(user):
     """next part of change_name_answer"""
-    # check if name include space
-    for i in user.text:
-        if ord(i) == 32:
-            msg = bot.reply_to(user, no_spaces)
-            bot.register_next_step_handler(msg, change_name_answer_2)
-            return 0
     # check if name too long
     if len(user.text) > 16:
         msg = bot.reply_to(user, long_name)
         bot.register_next_step_handler(msg, change_name_answer_2)
         return 0
-    # name saved
-    user_dict[user.chat.id] += ' ' + user.text
-    global kachki
+    global user_dict, kachki
     try:
         # saved information taken
-        alias, name = user_dict[user.chat.id].split()
-        alias = alias.lower()
+        alias, name = user_dict[user.chat.id], user.text.lower()
         # name changed
         kachki.get(alias).set_name(name)
         update_records()
@@ -318,7 +307,7 @@ def set_weight(user):
 def set_weight_answer(user):
     """next part of set_weight"""
     # report if user with such alias not registered
-    global kachki
+    global user_dict, kachki
     if user.text not in kachki:
         bot.send_message(user.chat.id, not_registered)
         return 0
@@ -341,7 +330,7 @@ def set_weight_answer_2(user):
         msg = bot.send_message(user.chat.id, weight_format)
         bot.register_next_step_handler(msg, set_weight_answer_2)
         return 0
-    global kachki
+    global user_dict, kachki
     try:
         # alias taken
         alias = user_dict[user.chat.id]
@@ -377,7 +366,7 @@ def set_self_weight(user):
 def setselfweight_answer(user):
     """next part of set_self_weight"""
     # report if user with such alias not registered
-    global kachki
+    global user_dict, kachki
     if user.text not in kachki:
         bot.send_message(user.chat.id, not_registered)
         return 0
@@ -399,7 +388,7 @@ def setselfweight_answer_2(user):
         msg = bot.send_message(user.chat.id, weight_format)
         bot.register_next_step_handler(msg, setselfweight_answer_2)
         return 0
-    global kachki
+    global user_dict, kachki
     try:
         # alias taken
         alias = user_dict[user.chat.id]
@@ -429,10 +418,9 @@ def new_user(user):
 def new_user_answer(user):
     """next part of new_user"""
     # alias can be written in both ways: with and without @, next if-else handles both ways
-    if user.text[0] != '@':
-        user_dict[user.chat.id] = '@' + user.text
-    else:
-        user_dict[user.chat.id] = user.text
+    global user_dict
+    alias = '@' + user.text if user.text[0] != '@' else user.text
+    user_dict[user.chat.id] = alias
     # name requested
     msg = bot.reply_to(user, enter_name)
     bot.register_next_step_handler(msg, new_user_answer_2)
@@ -440,13 +428,12 @@ def new_user_answer(user):
 
 def new_user_answer_2(user):
     """next part of new_user_answer"""
-    global kachki
+    global kachki, user_dict
     try:
         # add to the top new Kachok with received alias and name
         name = user.text
         alias = user_dict[user.chat.id]
-        member = Kachok(alias, name)
-        kachki[alias] = member
+        kachki[alias] = Kachok(alias, name)
         update_records()
         bot.send_message(user.chat.id, success)
         # clear user_dict
@@ -511,6 +498,7 @@ def reload(user):
     if not has_access(kachki, user.from_user.username.lower(), AccessLvl.OWNER):
         bot.send_message(user.chat.id, accessDenied)
         return 0
+    kachki = None
     load_kachki()
     bot.send_message(user.chat.id, success)
 
@@ -533,10 +521,9 @@ def chaccess_nikulin(user):
 
 
 def chaccess_answer(user):
-    if user.text[0] != '@':
-        user_dict[user.chat.id] = '@' + user.text
-    else:
-        user_dict[user.chat.id] = user.text
+    global user_dict
+    alias = '@' + user.text if user.text[0] != '@' else user.text
+    user_dict[user.chat.id] = alias
     # add all access levels to reply keyboard
     levels = [i.name for i in AccessLvl]
     rmk = types.ReplyKeyboardMarkup(resize_keyboard=True)
@@ -548,6 +535,7 @@ def chaccess_answer(user):
    
 
 def chaccess_answer_2(user):
+    global kachki, user_dict
     rmk = types.ReplyKeyboardRemove(selective=False)
     try:
         alias = user_dict[user.chat.id]
