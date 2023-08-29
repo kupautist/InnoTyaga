@@ -36,6 +36,18 @@ class Kachok:
         if alias == '@kupamonke':
             self.access = AccessLvl.OWNER
 
+    def equals(self, other):
+        return self.alias == other.alias and \
+        self.name == other.name and \
+        self.female == other.female and \
+        self.access == other.access and \
+        self.selfWeight == other.selfWeight and \
+        self.weight == other.weight and \
+        self.proteinPoints == other.proteinPoints and \
+        self.mark == other.mark and \
+        self.proteinPointsByDate == other.proteinPointsByDate and \
+        self.weightByDate == other.weightByDate
+
     def make_female(self):
         """function that can be helpful if * forgotten while adding female member"""
         if not self.female:

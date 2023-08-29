@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 from enum import IntEnum, auto
 from kachok import KachokEncoder, kachok_decoder
 
@@ -40,10 +41,9 @@ def write_data():
         logging.error(e)
 
 
-def load_data():
+def load_data(filename = 'kachki.json'):
     try:
-        with open('kachki.json', 'r') as f:
-            global kachki
+        with open(filename, 'r') as f:
             return json.load(f)
     except Exception as e:
         logging.error(e)
@@ -72,4 +72,38 @@ def load_kachki():
         kachki = {}
 
 
+def merge_kachki(filename = 'kachki_new.json'):
+    global kachki
+    kachki_new = None
+    try:
+        kachki_new = {m.alias : m for m in [kachok_decoder(mem) for mem in load_data(filename)]}
+    except IOError as e:
+        logging.error('Unable to read JSON while merging db')
+        logging.error(e)
+    except Exception as e:
+        logging.error('Unable to load kachki_new from JSON while merging db')
+        logging.error(e)
+    try:
+        for k in kachki_new.values():
+            if k.alias not in kachki:
+                kachki[k.alias] = k
+            elif (not k.equals(kachki[k.alias])):
+                kachki[k.alias].alias = k.alias
+                kachki[k.alias].name = k.name
+                kachki[k.alias].female = k.female
+                kachki[k.alias].access = k.access
+                kachki[k.alias].selfWeight = k.selfWeight
+                kachki[k.alias].weight = k.weight
+                kachki[k.alias].proteinPoints = k.proteinPoints
+                kachki[k.alias].mark = k.mark
+                kachki[k.alias].proteinPointsByDate = kachki[k.alias].proteinPointsByDate | k.proteinPointsByDate
+                kachki[k.alias].weightByDate = kachki[k.alias].weightByDate | k.weightByDate
+    except Exception as e:
+        logging.error('Exception caught while merging db')
+        logging.error(e)
+
 load_kachki()
+if (os.path.isfile('kachki_new.json')):
+    merge_kachki()
+    update_records()
+    os.remove('kachki_new.json')
