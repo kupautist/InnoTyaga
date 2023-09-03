@@ -119,16 +119,15 @@ class Kachok:
 
     def display(self):
         """function that display necessary information about member, using in displaying top"""
-        return self.name + ' ' + self.alias + ' - ' + str(int(self.weight)) + 'kg - ' + \
-        str(int(self.proteinPoints * 100)) + 'PP, ' + self.mark
+        return self.name + ' ' + self.alias + ' - ' + str(int(self.weight)) + 'kg - ' + str(int(self.proteinPoints * 100)) + 'PP, ' + self.mark
                 
     def info(self):
-        result = self.name + ' M ' if (not self.female) else ' F ' + self.alias + '\n' + \
-            'Рекорд: ' + self.weight + ' (' + int(self.proteinPoints*100) + 'PP, ' + self.mark + ')\n'
+        result = self.name + ' ' + self.alias + ' - ' +  (' M\n' if (not self.female) else ' F\n') + \
+            'Рекорд: ' + str(self.weight) + 'kg (' + str(int(self.proteinPoints*100)) + 'PP, ' + self.mark + ')\n'
         if (not self.proteinPointsByDate):
             return result + 'Вы пока ничего ещё не пожали. Пожмите хотя бы пустую штангу (20кг), я верю в вас!!!'
         for i in self.proteinPointsByDate:
-            result += str(i) + ' Вы пожали ' + str(self.weightByDate[i]) + ' и набрали ' + str(int(self.proteinPointsByDate[i]*100)) + 'PP\n'
+            result += str(i) + ' Вы пожали ' + str(self.weightByDate[i]) + 'kg и набрали ' + str(int(self.proteinPointsByDate[i]*100)) + 'PP\n'
         return result
 
 
