@@ -27,7 +27,7 @@ class Kachok:
         # Member's max points
         self.proteinPoints = 0
         # Member's best grade
-        self.mark = "(D)"
+        self.mark = "D"
         # Dictionary of points in format date:points
         self.proteinPointsByDate = {}
         # Dictionary of weights in format date:points
@@ -36,17 +36,22 @@ class Kachok:
         if alias == '@kupamonke':
             self.access = AccessLvl.OWNER
 
-    def equals(self, other):
-        return self.alias == other.alias and \
-        self.name == other.name and \
-        self.female == other.female and \
-        self.access == other.access and \
-        self.selfWeight == other.selfWeight and \
-        self.weight == other.weight and \
-        self.proteinPoints == other.proteinPoints and \
-        self.mark == other.mark and \
-        self.proteinPointsByDate == other.proteinPointsByDate and \
-        self.weightByDate == other.weightByDate
+    def __eq__(self, __value: object) -> bool:
+        return isinstance(__value, Kachok) and \
+        self.alias == __value.alias and \
+        self.name == __value.name and \
+        self.female == __value.female and \
+        self.access == __value.access and \
+        self.selfWeight == __value.selfWeight and \
+        self.weight == __value.weight and \
+        self.proteinPoints == __value.proteinPoints and \
+        self.mark == __value.mark and \
+        self.proteinPointsByDate == __value.proteinPointsByDate and \
+        self.weightByDate == __value.weightByDate
+    
+    def __ne__(self, __value: object) -> bool:
+        return not self == __value
+        
 
     def make_female(self):
         """function that can be helpful if * forgotten while adding female member"""
@@ -69,13 +74,13 @@ class Kachok:
     def grade(self):
         """function that update member grade"""
         if self.proteinPoints < 0.8:
-            self.mark = "(D)"
+            self.mark = "D"
         elif self.proteinPoints < 1:
-            self.mark = "(C)"
+            self.mark = "C"
         elif self.proteinPoints < 1.2:
-            self.mark = "(B)"
+            self.mark = "B"
         else:
-            self.mark = "(A)"
+            self.mark = "A"
 
     def set_self_weight(self, weight):
         """function that update member self weight"""
@@ -114,18 +119,17 @@ class Kachok:
 
     def display(self):
         """function that display necessary information about member, using in displaying top"""
-        information_1 = self.name + ' ' + self.alias + ' - ' + str(int(self.weight)) + ' kg - '
-        information_2 = str(int(self.proteinPoints * 100)) + ' PP ' + self.mark
-        information = information_1 + information_2
-        return information
-        
-    def profile(self):
-        info1 = self.name + ' ' + self.alias + '\n'
-        info2 = ''
+        return self.name + ' ' + self.alias + ' - ' + str(int(self.weight)) + 'kg - ' + \
+        str(int(self.proteinPoints * 100)) + 'PP, ' + self.mark
+                
+    def info(self):
+        result = self.name + ' M ' if (not self.female) else ' F ' + self.alias + '\n' + \
+            'Рекорд: ' + self.weight + ' (' + int(self.proteinPoints*100) + 'PP, ' + self.mark + ')\n'
+        if (not self.proteinPointsByDate):
+            return result + 'Вы пока ничего ещё не пожали. Пожмите хотя бы пустую штангу (20кг), я верю в вас!!!'
         for i in self.proteinPointsByDate:
-            info2 += str(i) + ' ты пожал ' + str(self.weightByDate[i]) + ' и набрал ' + str(int(self.proteinPointsByDate[i]*100)) + 'PP\n'
-        info = info1 + info2
-        return info
+            result += str(i) + ' Вы пожали ' + str(self.weightByDate[i]) + ' и набрали ' + str(int(self.proteinPointsByDate[i]*100)) + 'PP\n'
+        return result
 
 
 class KachokEncoder(json.JSONEncoder):

@@ -10,7 +10,7 @@ from data import kachki, user_dict, update_records, get_sorted, Order, load_kach
 @bot.message_handler(commands=['start', 'начать'])
 def start(user):
     """function that greets the user"""
-    bot.send_message(user.chat.id, f'Здарова, {user.from_user.first_name} {user.from_user.last_name}' + greet)
+    bot.send_message(user.chat.id, f'Здарова, {user.from_user.first_name} {user.from_user.last_name}' + RU.greet)
 
 
 @bot.message_handler(commands=['help', 'помощь'])
@@ -18,23 +18,23 @@ def commands_list(user):
     """function that send to user list of possible commands and their description"""
     alias = '@' + user.from_user.username.lower()
     if alias not in kachki:
-        bot.send_message(user.chat.id, commands[0])
-        bot.send_message(user.chat.id, reg)
+        bot.send_message(user.chat.id, RU.commands[0])
+        bot.send_message(user.chat.id, RU.reg)
         return
     for i in range(0, kachki[alias].access + 1):
-        bot.send_message(user.chat.id, commands[i])
+        bot.send_message(user.chat.id, RU.commands[i])
 
 
 @bot.message_handler(commands=['schedule'])
 def schedule(user):
     """function that send to user schedule of club meetings"""
-    bot.send_message(user.chat.id, schedule_)
+    bot.send_message(user.chat.id, RU.schedule_)
 
 
 @bot.message_handler(commands=['pp'])
 def grading(user):
     """function that send to user grading information"""
-    bot.send_message(user.chat.id, pp)
+    bot.send_message(user.chat.id, RU.pp)
 
 
 @bot.message_handler(commands=['top'])
@@ -50,7 +50,7 @@ def top(user):
         counter += 1
     # in case top empty send message indicating about
     if result == '':
-        bot.send_message(user.chat.id, emptyTop)
+        bot.send_message(user.chat.id, RU.emptyTop)
     else:
         bot.send_message(user.chat.id, result)
 
@@ -66,34 +66,34 @@ def register(user):
         # add user to top and sort it
         if alias not in kachki:
             kachki[alias] = Kachok(alias, name)
-            bot.send_message(user.chat.id, newMemberSuccess)
+            bot.send_message(user.chat.id, RU.newMemberSuccess)
             update_records()
         # if user already in top report about it
         else:
-            bot.send_message(user.chat.id, newMemberFail)
+            bot.send_message(user.chat.id, RU.newMemberFail)
     # report about if happen something unexpected
     except Exception as e:
         logging.error(e)
-        bot.send_message(user.chat.id, regProblem)
+        bot.send_message(user.chat.id, RU.regProblem)
 
 
-@bot.message_handler(commands=['profile'])
-def profile(user):
+@bot.message_handler(commands=['info'])
+def info(user):
     """function that display personal member profile"""
     global kachki
     try:
         # function takes alias and name of user who send this command
         alias = '@' + user.from_user.username.lower()
         if alias not in kachki:
-            bot.send_message(user.chat.id, reg)
+            bot.send_message(user.chat.id, RU.reg)
         # if user already in top report about it
         else:
-            info = kachki.get(alias).profile()
+            info = kachki[alias].info()
             bot.send_message(user.chat.id, info)
     # report about if happen something unexpected
     except Exception as e:
         logging.error(e)
-        bot.send_message(user.chat.id, regProblem)
+        bot.send_message(user.chat.id, RU.regProblem)
 
 
 @bot.message_handler(commands=['olduser'])
@@ -102,10 +102,10 @@ def old_user(user):
     # only several users can use this command
     global kachki
     if not has_access(kachki, user.from_user.username.lower(), AccessLvl.VIP):
-        bot.send_message(user.chat.id, accessDenied)
+        bot.send_message(user.chat.id, RU.accessDenied)
         return 0
     # member's alias requested
-    msg = bot.reply_to(user, enter_alias)
+    msg = bot.reply_to(user, RU.enter_alias)
     bot.register_next_step_handler(msg, olduser_answer)
 
 
@@ -118,10 +118,10 @@ def olduser_answer(user):
     user_dict[user.chat.id] = [alias]
     print(user_dict[user.chat.id])
     if user_dict[user.chat.id][0] in kachki:
-        msg = bot.reply_to(user, newMemberFail)
+        msg = bot.reply_to(user, RU.newMemberFail)
         bot.register_next_step_handler(msg, olduser_answer)
     # member's name requested
-    msg = bot.reply_to(user, enter_name)
+    msg = bot.reply_to(user, RU.enter_name)
     bot.register_next_step_handler(msg, olduser_answer_2)
 
 
@@ -130,13 +130,13 @@ def olduser_answer_2(user):
     # check if name too long
     global user_dict
     if len(user.text) > 16:
-        msg = bot.reply_to(user, long_name)
+        msg = bot.reply_to(user, RU.long_name)
         bot.register_next_step_handler(msg, olduser_answer_2)
         return 0
     # member's name saved
     user_dict[user.chat.id].append(user.text)
     # member's self weight requested
-    msg = bot.reply_to(user, enter_self_weight)
+    msg = bot.reply_to(user, RU.enter_self_weight)
     bot.register_next_step_handler(msg, olduser_answer_3)
 
 
@@ -148,13 +148,13 @@ def olduser_answer_3(user):
         float(user.text)
     except ValueError as e:
         logging.info(e)
-        msg = bot.send_message(user.chat.id, weight_format)
+        msg = bot.send_message(user.chat.id, RU.weight_format)
         bot.register_next_step_handler(msg, olduser_answer_3)
         return 0
     # member's self weight saved
     user_dict[user.chat.id].append(user.text)
     # member's weight requested
-    msg = bot.reply_to(user, enter_weight)
+    msg = bot.reply_to(user, RU.enter_weight)
     bot.register_next_step_handler(msg, olduser_answer_4)
 
 
@@ -166,7 +166,7 @@ def olduser_answer_4(user):
         float(user.text)
     except ValueError as e:
         logging.info(e)
-        msg = bot.send_message(user.chat.id, weight_format)
+        msg = bot.send_message(user.chat.id, RU.weight_format)
         bot.register_next_step_handler(msg, olduser_answer_4)
         return 0
     # member's weight saved
@@ -180,12 +180,12 @@ def olduser_answer_4(user):
         member.set_self_weight(self_weight)
         member.set_weight(weight)
         kachki[alias] = member
-        bot.send_message(user.chat.id, newMemberSuccess)
+        bot.send_message(user.chat.id, RU.newMemberSuccess)
         update_records()
     # report about if happen something unexpected
     except Exception as e:
         logging.error(e)
-        bot.send_message(user.chat.id, exception)
+        bot.send_message(user.chat.id, RU.exception)
     user_dict[user.chat.id] = None
 
 
@@ -195,14 +195,14 @@ def change_name(user):
     # only several users can use this command
     global kachki
     if not has_access(kachki, user.from_user.username.lower(), AccessLvl.VIP):
-        bot.send_message(user.chat.id, accessDenied)
+        bot.send_message(user.chat.id, RU.accessDenied)
         return 0
     # add all aliases of all members to reply keyboard
     rmk = types.ReplyKeyboardMarkup(resize_keyboard=True)
     for i in get_sorted(kachki, Order.ALPHABETICAL):
         rmk.add(i.alias)
     # alias requested
-    msg = bot.reply_to(user, enter_alias, reply_markup=rmk)
+    msg = bot.reply_to(user, RU.enter_alias, reply_markup=rmk)
     bot.register_next_step_handler(msg, change_name_answer)
 
 
@@ -211,14 +211,14 @@ def change_name_answer(user):
     global kachki
     # report if user with such alias not registered
     if user.text not in kachki:
-        bot.send_message(user.chat.id, not_registered)
+        bot.send_message(user.chat.id, RU.not_registered)
         return 0
     # alias saved
     user_dict[user.chat.id] = user.text
     # clear reply keyboard
     rmk = types.ReplyKeyboardRemove(selective=False)
     # name requested
-    msg = bot.reply_to(user, enter_name, reply_markup=rmk)
+    msg = bot.reply_to(user, RU.enter_name, reply_markup=rmk)
     bot.register_next_step_handler(msg, change_name_answer_2)
 
 
@@ -226,7 +226,7 @@ def change_name_answer_2(user):
     """next part of change_name_answer"""
     # check if name too long
     if len(user.text) > 16:
-        msg = bot.reply_to(user, long_name)
+        msg = bot.reply_to(user, RU.long_name)
         bot.register_next_step_handler(msg, change_name_answer_2)
         return 0
     global user_dict, kachki
@@ -236,11 +236,11 @@ def change_name_answer_2(user):
         # name changed
         kachki.get(alias).set_name(name)
         update_records()
-        bot.send_message(user.chat.id, success)
+        bot.send_message(user.chat.id, RU.success)
     # report about if happen something unexpected
     except Exception as e:
         logging.error(e)
-        bot.send_message(user.chat.id, exception)
+        bot.send_message(user.chat.id, RU.exception)
     user_dict[user.chat.id] = None
 
 
@@ -250,14 +250,14 @@ def make_female(user):
     # only several users can use this command
     global kachki
     if not has_access(kachki, user.from_user.username.lower(), AccessLvl.VIP):
-        bot.send_message(user.chat.id, accessDenied)
+        bot.send_message(user.chat.id, RU.accessDenied)
         return 0
     # add all aliases of all members to reply keyboard
     rmk = types.ReplyKeyboardMarkup(resize_keyboard=True)
     for i in get_sorted(kachki, Order.ALPHABETICAL):
         rmk.add(i.alias)
     # alias requested
-    msg = bot.reply_to(user, enter_alias, reply_markup=rmk)
+    msg = bot.reply_to(user, RU.enter_alias, reply_markup=rmk)
     bot.register_next_step_handler(msg, make_female_answer)
 
 
@@ -266,24 +266,24 @@ def make_female_answer(user):
     # report if user with such alias not registered
     global kachki
     if user.text not in kachki:
-        bot.send_message(user.chat.id, not_registered)
+        bot.send_message(user.chat.id, RU.not_registered)
         return 0
     # alias saved
     user_dict[user.chat.id] = user.text
     # clear reply keyboard
     rmk = types.ReplyKeyboardRemove(selective=False)
-    bot.reply_to(user, making_woman, reply_markup=rmk)
+    bot.reply_to(user, RU.making_woman, reply_markup=rmk)
     try:
         # alias taken
         alias = user_dict[user.chat.id]
         # make member female
         kachki.get(alias).make_female()
         update_records()
-        bot.send_message(user.chat.id, success)
+        bot.send_message(user.chat.id, RU.success)
     # report about if happen something unexpected
     except Exception as e:
         logging.error(e)
-        bot.send_message(user.chat.id, exception)
+        bot.send_message(user.chat.id, RU.exception)
     user_dict[user.chat.id] = None
 
 
@@ -293,14 +293,14 @@ def set_weight(user):
     # only several users can use this command
     global kachki
     if not has_access(kachki, user.from_user.username.lower(), AccessLvl.VIP):
-        bot.send_message(user.chat.id, accessDenied)
+        bot.send_message(user.chat.id, RU.accessDenied)
         return 0
     # add all aliases of all members to reply keyboard
     rmk = types.ReplyKeyboardMarkup(resize_keyboard=True)
     for i in get_sorted(kachki, Order.ALPHABETICAL):
         rmk.add(i.alias)
     # alias requested
-    msg = bot.reply_to(user, enter_alias, reply_markup=rmk)
+    msg = bot.reply_to(user, RU.enter_alias, reply_markup=rmk)
     bot.register_next_step_handler(msg, set_weight_answer)
 
 
@@ -309,14 +309,14 @@ def set_weight_answer(user):
     # report if user with such alias not registered
     global user_dict, kachki
     if user.text not in kachki:
-        bot.send_message(user.chat.id, not_registered)
+        bot.send_message(user.chat.id, RU.not_registered)
         return 0
     # alias saved
     user_dict[user.chat.id] = user.text
     # clear reply keyboard
     rmk = types.ReplyKeyboardRemove(selective=False)
     # weight requested
-    msg = bot.reply_to(user, enter_weight, reply_markup=rmk)
+    msg = bot.reply_to(user, RU.enter_weight, reply_markup=rmk)
     bot.register_next_step_handler(msg, set_weight_answer_2)
 
 
@@ -327,7 +327,7 @@ def set_weight_answer_2(user):
         float(user.text)
     except ValueError as e:
         logging.info(e)
-        msg = bot.send_message(user.chat.id, weight_format)
+        msg = bot.send_message(user.chat.id, RU.weight_format)
         bot.register_next_step_handler(msg, set_weight_answer_2)
         return 0
     global user_dict, kachki
@@ -338,11 +338,11 @@ def set_weight_answer_2(user):
         kachki.get(alias).set_weight(user.text)
         # update json record
         update_records()
-        bot.send_message(user.chat.id, success)
+        bot.send_message(user.chat.id, RU.success)
     # report about if happen something unexpected
     except Exception as e:
         logging.error(e)
-        bot.send_message(user.chat.id, exception)
+        bot.send_message(user.chat.id, RU.exception)
     user_dict[user.chat.id] = None
 
 
@@ -352,14 +352,14 @@ def set_self_weight(user):
     # only several users can use this command
     global kachki
     if not has_access(kachki, user.from_user.username.lower(), AccessLvl.VIP):
-        bot.send_message(user.chat.id, accessDenied)
+        bot.send_message(user.chat.id, RU.accessDenied)
         return 0
     # add all aliases of all members to reply keyboard
     rmk = types.ReplyKeyboardMarkup(resize_keyboard=True)
     for i in get_sorted(kachki, Order.ALPHABETICAL):
         rmk.add(i.alias)
     # alias requested
-    msg = bot.reply_to(user, enter_alias, reply_markup=rmk)
+    msg = bot.reply_to(user, RU.enter_alias, reply_markup=rmk)
     bot.register_next_step_handler(msg, setselfweight_answer)
 
 
@@ -368,13 +368,13 @@ def setselfweight_answer(user):
     # report if user with such alias not registered
     global user_dict, kachki
     if user.text not in kachki:
-        bot.send_message(user.chat.id, not_registered)
+        bot.send_message(user.chat.id, RU.not_registered)
         return 0
     user_dict[user.chat.id] = user.text
     # clear reply keyboard
     rmk = types.ReplyKeyboardRemove(selective=False)
     # self weight requested
-    msg = bot.reply_to(user, enter_self_weight, reply_markup=rmk)
+    msg = bot.reply_to(user, RU.enter_self_weight, reply_markup=rmk)
     bot.register_next_step_handler(msg, setselfweight_answer_2)
 
 
@@ -385,7 +385,7 @@ def setselfweight_answer_2(user):
         float(user.text)
     except ValueError as e:
         logging.info(e)
-        msg = bot.send_message(user.chat.id, weight_format)
+        msg = bot.send_message(user.chat.id, RU.weight_format)
         bot.register_next_step_handler(msg, setselfweight_answer_2)
         return 0
     global user_dict, kachki
@@ -395,11 +395,11 @@ def setselfweight_answer_2(user):
         # self weight changed
         kachki.get(alias).set_self_weight(user.text)
         update_records()
-        bot.send_message(user.chat.id, success)
+        bot.send_message(user.chat.id, RU.success)
     # report about if happen something unexpected
     except Exception as e:
         logging.error(e)
-        bot.send_message(user.chat.id, exception)
+        bot.send_message(user.chat.id, RU.exception)
     user_dict[user.chat.id] = None
 
 
@@ -408,10 +408,10 @@ def new_user(user):
     """function that add to top new member"""
     # only several users can use this command
     if not has_access(kachki, user.from_user.username.lower(), AccessLvl.VIP):
-        bot.send_message(user.chat.id, accessDenied)
+        bot.send_message(user.chat.id, RU.accessDenied)
         return 0
     # alias requested
-    msg = bot.reply_to(user, enter_alias)
+    msg = bot.reply_to(user, RU.enter_alias)
     bot.register_next_step_handler(msg, new_user_answer)
 
 
@@ -422,7 +422,7 @@ def new_user_answer(user):
     alias = '@' + user.text if user.text[0] != '@' else user.text
     user_dict[user.chat.id] = alias
     # name requested
-    msg = bot.reply_to(user, enter_name)
+    msg = bot.reply_to(user, RU.enter_name)
     bot.register_next_step_handler(msg, new_user_answer_2)
 
 
@@ -435,20 +435,20 @@ def new_user_answer_2(user):
         alias = user_dict[user.chat.id]
         kachki[alias] = Kachok(alias, name)
         update_records()
-        bot.send_message(user.chat.id, success)
+        bot.send_message(user.chat.id, RU.success)
         # clear user_dict
         user_dict[user.chat.id] = None
     # report about if happen something unexpected
     except Exception as e:
         logging.error(e)
-        bot.send_message(user.chat.id, exception)
+        bot.send_message(user.chat.id, RU.exception)
 
 
 @bot.message_handler(commands=['danilnikulin', 'DanilNikulin'])
 def danil_nikulin(user):
     """DanilNikulin"""
     for i in range(10):
-        bot.send_message(user.chat.id, nikulin)
+        bot.send_message(user.chat.id, RU.nikulin)
 
 
 @bot.message_handler(commands=['delete'])
@@ -457,14 +457,14 @@ def delete_nikulin(user):
     # only several users can use this command
     global kachki
     if not has_access(kachki, user.from_user.username.lower(), AccessLvl.VIP):
-        bot.send_message(user.chat.id, accessDenied)
+        bot.send_message(user.chat.id, RU.accessDenied)
         return 0
     # add all aliases of all members to reply keyboard
     rmk = types.ReplyKeyboardMarkup(resize_keyboard=True)
     for i in get_sorted(kachki, Order.ALPHABETICAL):
         rmk.add(i.alias)
     # alias requested
-    msg = bot.reply_to(user, enter_alias, reply_markup=rmk)
+    msg = bot.reply_to(user, RU.enter_alias, reply_markup=rmk)
     bot.register_next_step_handler(msg, delete_answer)
 
 
@@ -475,19 +475,19 @@ def delete_answer(user):
     # if member with such alias do not registered, report about it
     global kachki
     if user.text not in kachki:
-        bot.reply_to(user, not_registered, reply_markup=rmk)
+        bot.reply_to(user, RU.not_registered, reply_markup=rmk)
         return 0
     # else delete member with corresponding alias from top
-    bot.reply_to(user, deleting, reply_markup=rmk)
+    bot.reply_to(user, RU.deleting, reply_markup=rmk)
     try:
         alias = user.text
         kachki.pop(alias)
         update_records()
-        bot.send_message(user.chat.id, success)
+        bot.send_message(user.chat.id, RU.success)
     # report about if happen something unexpected
     except Exception as e:
         logging.error(e)
-        bot.send_message(user.chat.id, exception)
+        bot.send_message(user.chat.id, RU.exception)
 
 
 @bot.message_handler(commands=['reload'])
@@ -496,11 +496,11 @@ def reload(user):
     # only several users can use this command
     global kachki
     if not has_access(kachki, user.from_user.username.lower(), AccessLvl.OWNER):
-        bot.send_message(user.chat.id, accessDenied)
+        bot.send_message(user.chat.id, RU.accessDenied)
         return 0
     kachki = None
     load_kachki()
-    bot.send_message(user.chat.id, success)
+    bot.send_message(user.chat.id, RU.success)
 
 
 @bot.message_handler(commands=['chaccess'])
@@ -509,14 +509,14 @@ def chaccess_nikulin(user):
     # only several users can use this command
     global kachki
     if not has_access(kachki, user.from_user.username.lower(), AccessLvl.OWNER):
-        bot.send_message(user.chat.id, accessDenied)
+        bot.send_message(user.chat.id, RU.accessDenied)
         return 0
     # add all aliases of all members to reply keyboard
     rmk = types.ReplyKeyboardMarkup(resize_keyboard=True)
     for i in get_sorted(kachki, Order.ALPHABETICAL):
         rmk.add(i.alias)
     # alias requested
-    msg = bot.reply_to(user, enter_alias, reply_markup=rmk)
+    msg = bot.reply_to(user, RU.enter_alias, reply_markup=rmk)
     bot.register_next_step_handler(msg, chaccess_answer)
 
 
@@ -530,7 +530,7 @@ def chaccess_answer(user):
     for i in levels:
         rmk.add(i)
     # alias requested
-    msg = bot.reply_to(user, enter_alias, reply_markup=rmk)
+    msg = bot.reply_to(user, RU.enter_alias, reply_markup=rmk)
     bot.register_next_step_handler(msg, chaccess_answer_2)
    
 
@@ -542,19 +542,19 @@ def chaccess_answer_2(user):
         kachki[alias].access = access_from_str(user.text)
         user_dict[user.chat.id] = None
         update_records()
-        bot.send_message(user.chat.id, success, reply_markup=rmk)
+        bot.send_message(user.chat.id, RU.success, reply_markup=rmk)
     except Exception as e:
         logging.error(e)
-        bot.send_message(user.chat.id, exception, reply_markup=rmk)
+        bot.send_message(user.chat.id, RU.exception, reply_markup=rmk)
 
 
 @bot.message_handler()
 def wrong_command(user):
     """function that send to user information that such command did not exist"""
-    bot.send_message(user.chat.id, empty)
+    bot.send_message(user.chat.id, RU.empty)
 
 
 @bot.message_handler(content_types=['photo'])
 def photo(user):
     """function that handles photos"""
-    bot.reply_to(user, goodPhoto)
+    bot.reply_to(user, RU.goodPhoto)
