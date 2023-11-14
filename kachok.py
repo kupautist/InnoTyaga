@@ -1,5 +1,7 @@
-import time
 import json
+import time
+
+from access import AccessLvl
 
 
 class Kachok:
@@ -17,6 +19,8 @@ class Kachok:
 
         # Telegram alias of club member
         self.alias = alias
+        # Member's current access level
+        self.access = AccessLvl.MEMBER
         # Member's current self weight
         self.selfWeight = 100
         # Member's max weight
@@ -24,11 +28,31 @@ class Kachok:
         # Member's max points
         self.proteinPoints = 0
         # Member's best grade
-        self.mark = "(D)"
+        self.mark = "D"
         # Dictionary of points in format date:points
         self.proteinPointsByDate = {}
         # Dictionary of weights in format date:points
         self.weightByDate = {}
+        # Hardcoded owner
+        if alias == '@kupamonke' or alias == '@nerag0n7':
+            self.access = AccessLvl.OWNER
+
+    def __eq__(self, __value: object) -> bool:
+        return isinstance(__value, Kachok) and \
+        self.alias == __value.alias and \
+        self.name == __value.name and \
+        self.female == __value.female and \
+        self.access == __value.access and \
+        self.selfWeight == __value.selfWeight and \
+        self.weight == __value.weight and \
+        self.proteinPoints == __value.proteinPoints and \
+        self.mark == __value.mark and \
+        self.proteinPointsByDate == __value.proteinPointsByDate and \
+        self.weightByDate == __value.weightByDate
+    
+    def __ne__(self, __value: object) -> bool:
+        return not self == __value
+        
 
     def make_female(self):
         """function that can be helpful if * forgotten while adding female member"""
@@ -50,14 +74,14 @@ class Kachok:
 
     def grade(self):
         """function that update member grade"""
-        if self.proteinPoints < 0.8:
-            self.mark = "(D)"
-        elif self.proteinPoints < 1:
-            self.mark = "(C)"
-        elif self.proteinPoints < 1.2:
-            self.mark = "(B)"
+        if self.proteinPoints < 0.55:
+            self.mark = "D"
+        elif self.proteinPoints < 0.7:
+            self.mark = "C"
+        elif self.proteinPoints < 0.85:
+            self.mark = "B"
         else:
-            self.mark = "(A)"
+            self.mark = "A"
 
     def set_self_weight(self, weight):
         """function that update member self weight"""
@@ -96,17 +120,17 @@ class Kachok:
 
     def display(self):
         """function that display necessary information about member, using in displaying top"""
-        information_1 = self.name + ' ' + self.alias + ' - ' + str(int(self.weight)) + ' kg - '
-        information_2 = str(int(self.proteinPoints * 100)) + ' PP ' + self.mark
-        information = information_1 + information_2
-        return information
-    def profile(self):
-        info1 = self.name + ' ' + self.alias + '\n'
-        info2 = ''
+        return f'{self.name} {self.alias} - {str(int(self.weight))}kg - {str(int(self.proteinPoints * 100))}PP ({self.mark})'
+                
+    def info(self):
+        result = f'{self.name} {self.alias} - ' + ('M\n' if (not self.female) else 'F\n') + \
+            f'Рекорд: {str(self.weight)}kg - {str(int(self.proteinPoints*100))}PP ({self.mark})\n'
+        if (not self.proteinPointsByDate):
+            return result + 'Вы пока ничего ещё не пожали. Пожмите хотя бы пустую штангу (20кг), я верю в вас!!!'
         for i in self.proteinPointsByDate:
-            info2 += str(i) + ' ты пожал ' + str(self.weightByDate[i]) + ' и набрал ' + str(int(self.proteinPointsByDate[i]*100)) + 'PP\n'
-        info = info1 + info2
-        return info
+            result += f'{str(i)} вы пожали {str(self.weightByDate[i])}kg и набрали {str(int(self.proteinPointsByDate[i]*100))}PP\n'
+        return result
+
 
 class KachokEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -120,12 +144,17 @@ class KachokEncoder(json.JSONEncoder):
 
 
 def kachok_decoder(jo) -> Kachok:
-    member = Kachok(jo['alias'], jo['name'])
-    member.female = jo['female']
-    member.selfWeight = jo['selfWeight']
-    member.weight = jo['weight']
-    member.proteinPoints = jo['proteinPoints']
-    member.mark = jo['mark']
-    member.proteinPointsByDate = jo['proteinPointsByDate']
-    member.weightByDate = jo['weightByDate']
+    member = Kachok(jo['alias'].lower(), jo['name'])
+    member.access = jo['access'] if 'access' in jo else AccessLvl.MEMBER
+    member.female = jo['female'] if 'female' in jo else False
+    member.selfWeight = jo['selfWeight'] if 'selfWeight' in jo else 100.0
+    member.weight = jo['weight'] if 'weight' in jo else 0.0
+    member.proteinPoints = jo['proteinPoints'] if 'proteinPoints' in jo else 0.0
+    member.mark = jo['mark'].strip('()') if 'mark' in jo else 'D'
+    member.proteinPointsByDate = jo['proteinPointsByDate'] if 'proteinPointsByDate' in jo else {}
+    member.weightByDate = jo['weightByDate'] if 'weightByDate' in jo else {}
+
+    if member.alias == '@kupamonke':
+        member.access = AccessLvl.OWNER
+
     return member
