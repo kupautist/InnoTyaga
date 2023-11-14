@@ -13,6 +13,27 @@ def start(user):
     bot.send_message(user.chat.id, f'Здарова, {user.from_user.first_name} {user.from_user.last_name}' + RU.greet)
 
 
+@bot.message_handler(commands=['gradeall'])
+def grade_all(user):
+    if not has_access(kachki, user.from_user.username.lower(), AccessLvl.OWNER):
+        bot.send_message(user.chat.id, RU.accessDenied)
+        return 0
+    for i in kachki:
+        kachki.get(i).grade()
+    bot.send_message(user.chat.id, "Все, я всех загредил")
+
+
+@bot.message_handler(commands=['scalepoints'])
+def scale_points(user):
+    if not has_access(kachki, user.from_user.username.lower(), AccessLvl.OWNER):
+        bot.send_message(user.chat.id, RU.accessDenied)
+        return 0
+    for i in kachki:
+        kachki.get(i).proteinPoints *= 0.5
+        kachki.get(i).grade()
+    bot.send_message(user.chat.id, "Все, я всех загредил")
+
+
 @bot.message_handler(commands=['help', 'помощь'])
 def commands_list(user):
     """function that send to user list of possible commands and their description"""
@@ -286,6 +307,64 @@ def make_female_answer(user):
         bot.send_message(user.chat.id, RU.exception)
     user_dict[user.chat.id] = None
 
+
+@bot.message_handler(commands=['changeweight'])
+def change_weight(user):
+    """function that used to change member weight"""
+    # only several users can use this command
+    global kachki
+    if not has_access(kachki, user.from_user.username.lower(), AccessLvl.VIP):
+        bot.send_message(user.chat.id, RU.accessDenied)
+        return 0
+    # add all aliases of all members to reply keyboard
+    rmk = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    for i in get_sorted(kachki, Order.ALPHABETICAL):
+        rmk.add(i.alias)
+    # alias requested
+    msg = bot.reply_to(user, RU.enter_alias, reply_markup=rmk)
+    bot.register_next_step_handler(msg, set_weight_answer)
+
+
+def change_weight_answer(user):
+    """next part of set_weight"""
+    # report if user with such alias not registered
+    global user_dict, kachki
+    if user.text not in kachki:
+        bot.send_message(user.chat.id, RU.not_registered)
+        return 0
+    # alias saved
+    user_dict[user.chat.id] = user.text
+    # clear reply keyboard
+    rmk = types.ReplyKeyboardRemove(selective=False)
+    # weight requested
+    msg = bot.reply_to(user, RU.enter_weight, reply_markup=rmk)
+    bot.register_next_step_handler(msg, set_weight_answer_2)
+
+
+def change_weight_answer_2(user):
+    """next part of set_weight_answer"""
+    # check if weight format incorrect
+    try:
+        float(user.text)
+    except ValueError as e:
+        logging.info(e)
+        msg = bot.send_message(user.chat.id, RU.weight_format)
+        bot.register_next_step_handler(msg, set_weight_answer_2)
+        return 0
+    global user_dict, kachki
+    try:
+        # alias taken
+        alias = user_dict[user.chat.id]
+        # weight changed
+        kachki.get(alias).change_weight(user.text)
+        # update json record
+        update_records()
+        bot.send_message(user.chat.id, RU.success)
+    # report about if happen something unexpected
+    except Exception as e:
+        logging.error(e)
+        bot.send_message(user.chat.id, RU.exception)
+    user_dict[user.chat.id] = None
 
 @bot.message_handler(commands=['setweight'])
 def set_weight(user):

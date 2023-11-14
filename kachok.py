@@ -51,7 +51,6 @@ class Kachok:
     
     def __ne__(self, __value: object) -> bool:
         return not self == __value
-        
 
     def make_female(self):
         """function that can be helpful if * forgotten while adding female member"""
@@ -60,6 +59,12 @@ class Kachok:
             for i in self.proteinPointsByDate:
                 self.proteinPointsByDate[i] *= 1.64
             self.female = True
+            self.grade()
+        else:
+            self.proteinPoints /= 1.64
+            for i in self.proteinPointsByDate:
+                self.proteinPointsByDate[i] /= 1.64
+            self.female = False
             self.grade()
 
     def make_male(self):
@@ -73,11 +78,11 @@ class Kachok:
 
     def grade(self):
         """function that update member grade"""
-        if self.proteinPoints < 0.8:
+        if self.proteinPoints < 0.55:
             self.mark = "D"
-        elif self.proteinPoints < 1:
+        elif self.proteinPoints < 0.7:
             self.mark = "C"
-        elif self.proteinPoints < 1.2:
+        elif self.proteinPoints < 0.85:
             self.mark = "B"
         else:
             self.mark = "A"
@@ -87,11 +92,21 @@ class Kachok:
         # since new self weight not taken into account for previous results not so many actions needed
         self.selfWeight = float(weight)
 
+    def change_weight(self, weight):
+        """function useful if typo while entering results"""
+        self.weight = weight
+        if self.female:
+            self.proteinPoints = float(weight)*1.64 / self.selfWeight
+        else:
+            self.proteinPoints = float(weight) / self.selfWeight
+        self.grade()
+
     def set_weight(self, weight):
         """function that update member weight"""
         # Member's max weight updates if needed
         self.weight = max(float(weight), self.weight)
         # Member's max points updates if needed
+        weight = float(weight) * 1.64
         if self.female:
             self.proteinPoints = max(self.proteinPoints, float(weight)*1.64 / self.selfWeight)
         else:
