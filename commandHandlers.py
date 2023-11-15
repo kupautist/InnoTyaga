@@ -86,7 +86,7 @@ def profile(user):
             bot.send_message(user.chat.id, reg)
         # if user already in top report about it
         else:
-            info = kachki.get(alias).profile()
+            info = kachki[alias].profile()
             bot.send_message(user.chat.id, info)
     # report about if happen something unexpected
     except Exception as e:
@@ -246,7 +246,7 @@ def change_name_answer_2(user):
         alias, name = user_dict[user.chat.id].split()
         alias = alias.lower()
         # name changed
-        kachki.get(alias).set_name(name)
+        kachki[alias].set_name(name)
         update_records()
         bot.send_message(user.chat.id, success)
     # report about if happen something unexpected
@@ -289,7 +289,7 @@ def make_female_answer(user):
         # alias taken
         alias = user_dict[user.chat.id]
         # make member female
-        kachki.get(alias).make_female()
+        kachki[alias].make_female()
         update_records()
         bot.send_message(user.chat.id, success)
     # report about if happen something unexpected
@@ -347,7 +347,7 @@ def set_weight_answer_2(user):
         # alias taken
         alias = user_dict[user.chat.id]
         # weight changed
-        kachki.get(alias).set_weight(user.text)
+        kachki[alias].set_weight(user.text)
         # update json record
         update_records()
         bot.send_message(user.chat.id, success)
@@ -405,7 +405,7 @@ def setselfweight_answer_2(user):
         # alias taken
         alias = user_dict[user.chat.id]
         # self weight changed
-        kachki.get(alias).set_self_weight(user.text)
+        kachki[alias].set_self_weight(user.text)
         update_records()
         bot.send_message(user.chat.id, success)
     # report about if happen something unexpected

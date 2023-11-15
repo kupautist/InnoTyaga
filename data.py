@@ -29,7 +29,6 @@ def get_sorted(members):
     """function that returns list of Kachok sorted by pp"""
     return sorted(members.values(), key=lambda item: item.proteinPoints, reverse=True)
 
-
 def write_data():
     """function that dumps kachki dictionary into a kachki.json"""
     try:
@@ -40,16 +39,9 @@ def write_data():
     except Exception as e:
         logging.error(e)
 
-
 def load_data():
-    try:
-        with open('kachki.json', 'r') as f:
-            global kachki
-            return json.load(f)
-    except Exception as e:
-        logging.error(e)
-        return None
-
+    with open('kachki.json', 'r') as f:
+        return json.load(f)
 
 def update_records():
     """function that updates the records of kachki"""
