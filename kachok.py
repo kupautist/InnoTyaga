@@ -106,7 +106,7 @@ class Kachok:
         # Member's max weight updates if needed
         self.weight = max(float(weight), self.weight)
         # Member's max points updates if needed
-        weight = float(weight) * 1.64
+        weight = float(weight) * 0.5
         if self.female:
             self.proteinPoints = max(self.proteinPoints, float(weight)*1.64 / self.selfWeight)
         else:

@@ -67,8 +67,9 @@ def top(user):
     # display all members
     leaderboard = get_sorted(kachki)
     for i in leaderboard:
-        result += str(counter + 1) + " " + i.display() + '\n'
-        counter += 1
+        if i.proteinPoints != 0:
+            result += str(counter + 1) + " " + i.display() + '\n'
+            counter += 1
     # in case top empty send message indicating about
     if result == '':
         bot.send_message(user.chat.id, RU.emptyTop)
@@ -136,7 +137,7 @@ def olduser_answer(user):
     # member's alias saved
     global user_dict, kachki
     alias = '@' + user.text if user.text[0] != '@' else user.text
-    user_dict[user.chat.id] = [alias]
+    user_dict[user.chat.id] = alias.lower()
     print(user_dict[user.chat.id])
     if user_dict[user.chat.id][0] in kachki:
         msg = bot.reply_to(user, RU.newMemberFail)
@@ -208,6 +209,39 @@ def olduser_answer_4(user):
         logging.error(e)
         bot.send_message(user.chat.id, RU.exception)
     user_dict[user.chat.id] = None
+
+
+@bot.message_handler(commands=['changealias'])
+def change_alias(user):
+    """function that make member's alias lowercase, was created due to error """
+    # only several users can use this command
+    global kachki
+    if not has_access(kachki, user.from_user.username.lower(), AccessLvl.VIP):
+        bot.send_message(user.chat.id, RU.accessDenied)
+        return 0
+    # add all aliases of all members to reply keyboard
+    rmk = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    for i in get_sorted(kachki, Order.ALPHABETICAL):
+        rmk.add(i.alias)
+    # alias requested
+    msg = bot.reply_to(user, RU.enter_alias, reply_markup=rmk)
+    bot.register_next_step_handler(msg, change_alias_answer)
+
+
+def change_alias_answer(user):
+    """next part of change_name"""
+    global kachki
+    # report if user with such alias not registered
+    if user.text not in kachki:
+        bot.send_message(user.chat.id, RU.not_registered)
+        return 0
+    # clear reply keyboard
+    rmk = types.ReplyKeyboardRemove(selective=False)
+    if user.text.lower() not in kachki:
+        kachki[user.text].alias = user.text.lower()
+        msg = bot.reply_to(user, RU.enter_new_alias, reply_markup=rmk)
+    else:
+        msg = bot.reply_to(user, 'Сначала удали дубликат', reply_markup=rmk)
 
 
 @bot.message_handler(commands=['changename'])
@@ -499,7 +533,7 @@ def new_user_answer(user):
     # alias can be written in both ways: with and without @, next if-else handles both ways
     global user_dict
     alias = '@' + user.text if user.text[0] != '@' else user.text
-    user_dict[user.chat.id] = alias
+    user_dict[user.chat.id] = alias.lower()
     # name requested
     msg = bot.reply_to(user, RU.enter_name)
     bot.register_next_step_handler(msg, new_user_answer_2)

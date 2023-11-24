@@ -8,5 +8,4 @@ logging.basicConfig(
 )
 
 
-
 bot.infinity_polling(logger_level=logging.WARN)
