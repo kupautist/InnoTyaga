@@ -43,9 +43,11 @@ def write_data():
 
 
 def load_data(filename = 'kachki.json'):
+    if not os.path.isfile(filename):
+        logging.warn(f'Tried to load nonexistant file {filename}')
+        return None
     try:
-        with open(filename, 'r') as f:
-            return json.load(f)
+        return json.load(open(filename, 'r'))
     except Exception as e:
         logging.error(e)
         return None
@@ -53,7 +55,6 @@ def load_data(filename = 'kachki.json'):
 
 def update_records():
     """function that updates the records of kachki"""
-    global kachki
     write_data()
 
 
