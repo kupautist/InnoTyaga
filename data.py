@@ -18,7 +18,7 @@ class Order(IntEnum):
     SELF_WEIGHT = auto()
 
 
-def get_sorted(members, order = Order.PP) -> list:
+def get_sorted(members: dict[str, Kachok], order = Order.PP) -> list:
     """function that returns list of Kachok sorted by parameter order (by defult PP)"""
     match order:
         case Order.PP:
@@ -26,7 +26,7 @@ def get_sorted(members, order = Order.PP) -> list:
         case Order.ALPHABETICAL:
             return sorted(members.values(), key=lambda item: item.alias)
         case Order.SELF_WEIGHT:
-            return sorted(members.value(), key=lambda item: item.selfWeight, reverse=True)
+            return sorted(members.values(), key=lambda item: item.selfWeight, reverse=True)
         case _:
             return None
 
