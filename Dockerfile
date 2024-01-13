@@ -1,4 +1,3 @@
-#!/usr/bin/env ./.build.sh
 FROM python:3.12-alpine
 
 ADD . /app
