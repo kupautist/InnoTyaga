@@ -7,4 +7,4 @@ WORKDIR /app
 RUN apk add git
 RUN pip install --no-cache-dir -r requirements.txt
 
-CMD ["python", "main.py"]
+CMD ["python", "run.py"]
