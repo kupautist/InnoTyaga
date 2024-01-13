@@ -1,14 +1,10 @@
-# Use an official Python runtime as a parent image
+#!/usr/bin/env ./.build.sh
 FROM python:3.12-alpine
 
-# Set the working directory in the container to /app
+ADD . /app
 WORKDIR /app
 
-# Add the current directory contents into the container at /app
-ADD . /app
-
-# Install any needed packages specified in requirements.txt
+RUN apk add git
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Run main.py when the container launches
 CMD ["python", "main.py"]

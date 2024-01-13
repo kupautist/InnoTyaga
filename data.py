@@ -3,14 +3,14 @@ import logging
 import os
 from enum import IntEnum, auto
 
-from kachok import KachokEncoder, kachok_decoder
+from kachok import Kachok, KachokEncoder, kachok_decoder
 
 # dictionary that remember information in format user_chat_id:information
 # used in functions with register_next_step_handler
 user_dict = {}
 
 # dictionary of all members in alias:Kachok format, sorted after any changes
-kachki = {}
+kachki: dict[str, Kachok] = {}
 
 class Order(IntEnum):
     PP = auto()

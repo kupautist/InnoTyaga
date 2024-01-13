@@ -2,9 +2,9 @@ import logging
 import os
 import signal
 
-from telebot.types import *
+from telebot.types import Message, ReplyKeyboardMarkup, ReplyKeyboardRemove
 
-from access import *
+from access import AccessLvl, access_from_str, has_access
 from botInstance import bot
 from data import (Order, get_sorted, kachki, load_kachki, update_records,
                   user_dict)
@@ -109,7 +109,7 @@ def old_user(message: Message):
     global kachki
     if not has_access(kachki, message.from_user.username.lower(), AccessLvl.VIP):
         bot.send_message(message.chat.id, get_locale(message).accessDenied)
-        return 0
+        return
     # member's alias requested
     msg = bot.reply_to(message, get_locale(message).enter_alias)
     bot.register_next_step_handler(msg, olduser_answer)
@@ -138,7 +138,7 @@ def olduser_answer_2(message: Message):
     if len(message.text) > 16:
         msg = bot.reply_to(message, get_locale(message).long_name)
         bot.register_next_step_handler(msg, olduser_answer_2)
-        return 0
+        return
     # member's name saved
     user_dict[message.from_user.id].append(message.text)
     # member's self weight requested
@@ -156,7 +156,7 @@ def olduser_answer_3(message: Message):
         logging.info(e)
         msg = bot.send_message(message.chat.id, get_locale(message).weight_format)
         bot.register_next_step_handler(msg, olduser_answer_3)
-        return 0
+        return
     # member's self weight saved
     user_dict[message.from_user.id].append(message.text)
     # member's weight requested
@@ -174,7 +174,7 @@ def olduser_answer_4(message: Message):
         logging.info(e)
         msg = bot.send_message(message.chat.id, get_locale(message).weight_format)
         bot.register_next_step_handler(msg, olduser_answer_4)
-        return 0
+        return
     # member's weight saved
     user_dict[message.from_user.id].append(message.text)
     try:
@@ -202,7 +202,7 @@ def change_name(message: Message):
     global kachki
     if not has_access(kachki, message.from_user.username.lower(), AccessLvl.VIP):
         bot.send_message(message.chat.id, get_locale(message).accessDenied)
-        return 0
+        return
     # add all aliases of all members to reply keyboard
     rmk = message.ReplyKeyboardMarkup(resize_keyboard=True)
     for i in get_sorted(kachki, Order.ALPHABETICAL):
@@ -218,7 +218,7 @@ def change_name_answer(message: Message):
     # report if user with such alias not registered
     if message.text not in kachki:
         bot.send_message(message.chat.id, get_locale(message).not_registered)
-        return 0
+        return
     # alias saved
     user_dict[message.from_user.id] = message.text
     # clear reply keyboard
@@ -234,14 +234,14 @@ def change_name_answer_2(message: Message):
     if len(message.text) > 16:
         msg = bot.reply_to(message, get_locale(message).long_name)
         bot.register_next_step_handler(msg, change_name_answer_2)
-        return 0
+        return
     global user_dict, kachki
     try:
         # saved information taken
         alias = user_dict[message.from_user.id]
         name = message.text.lower()
         # name changed
-        kachki.get(alias).set_name(name)
+        kachki[alias].set_name(name)
         update_records()
         bot.send_message(message.chat.id, get_locale(message).success)
     # report about if happen something unexpected
@@ -258,7 +258,7 @@ def make_female(message: Message):
     global kachki
     if not has_access(kachki, message.from_user.username.lower(), AccessLvl.VIP):
         bot.send_message(message.chat.id, get_locale(message).accessDenied)
-        return 0
+        return
     # add all aliases of all members to reply keyboard
     rmk = ReplyKeyboardMarkup(resize_keyboard=True)
     for i in get_sorted(kachki, Order.ALPHABETICAL):
@@ -274,7 +274,7 @@ def make_female_answer(message: Message):
     global kachki
     if message.text not in kachki:
         bot.send_message(message.chat.id, get_locale(message).not_registered)
-        return 0
+        return
     # alias saved
     user_dict[message.from_user.id] = message.text
     # clear reply keyboard
@@ -284,7 +284,7 @@ def make_female_answer(message: Message):
         # alias taken
         alias = user_dict[message.from_user.id]
         # make member female
-        kachki.get(alias).make_female()
+        kachki[alias].make_female()
         update_records()
         bot.send_message(message.chat.id, get_locale(message).success)
     # report about if happen something unexpected
@@ -301,7 +301,7 @@ def set_weight(message: Message):
     global kachki
     if not has_access(kachki, message.from_user.username.lower(), AccessLvl.VIP):
         bot.send_message(message.chat.id, get_locale(message).accessDenied)
-        return 0
+        return
     # add all aliases of all members to reply keyboard
     rmk = ReplyKeyboardMarkup(resize_keyboard=True)
     for i in get_sorted(kachki, Order.ALPHABETICAL):
@@ -317,7 +317,7 @@ def set_weight_answer(message: Message):
     global user_dict, kachki
     if message.text not in kachki:
         bot.send_message(message.chat.id, get_locale(message).not_registered)
-        return 0
+        return
     # alias saved
     user_dict[message.from_user.id] = message.text
     # clear reply keyboard
@@ -336,13 +336,13 @@ def set_weight_answer_2(message: Message):
         logging.info(e)
         msg = bot.send_message(message.chat.id, get_locale(message).weight_format)
         bot.register_next_step_handler(msg, set_weight_answer_2)
-        return 0
+        return
     global user_dict, kachki
     try:
         # alias taken
         alias = user_dict[message.from_user.id]
         # weight changed
-        kachki.get(alias).set_weight(message.text)
+        kachki[alias].set_weight(message.text)
         # update json record
         update_records()
         bot.send_message(message.chat.id, get_locale(message).success)
@@ -360,7 +360,7 @@ def set_self_weight(message: Message):
     global kachki
     if not has_access(kachki, message.from_user.username.lower(), AccessLvl.VIP):
         bot.send_message(message.chat.id, get_locale(message).accessDenied)
-        return 0
+        return
     # add all aliases of all members to reply keyboard
     rmk = ReplyKeyboardMarkup(resize_keyboard=True)
     for i in get_sorted(kachki, Order.ALPHABETICAL):
@@ -376,7 +376,7 @@ def setselfweight_answer(message: Message):
     global user_dict, kachki
     if message.text not in kachki:
         bot.send_message(message.chat.id, get_locale(message).not_registered)
-        return 0
+        return
     user_dict[message.from_user.id] = message.text
     # clear reply keyboard
     rmk = ReplyKeyboardRemove(selective=False)
@@ -394,13 +394,13 @@ def setselfweight_answer_2(message: Message):
         logging.info(e)
         msg = bot.send_message(message.chat.id, get_locale(message).weight_format)
         bot.register_next_step_handler(msg, setselfweight_answer_2)
-        return 0
+        return
     global user_dict, kachki
     try:
         # alias taken
         alias = user_dict[message.from_user.id]
         # self weight changed
-        kachki.get(alias).set_self_weight(message.text)
+        kachki[alias].set_self_weight(message.text)
         update_records()
         bot.send_message(message.chat.id, get_locale(message).success)
     # report about if happen something unexpected
@@ -416,7 +416,7 @@ def new_user(message: Message):
     # only several users can use this command
     if not has_access(kachki, message.from_user.username.lower(), AccessLvl.VIP):
         bot.send_message(message.chat.id, get_locale(message).accessDenied)
-        return 0
+        return
     # alias requested
     msg = bot.reply_to(message, get_locale(message).enter_alias)
     bot.register_next_step_handler(msg, new_user_answer)
@@ -465,7 +465,7 @@ def delete_nikulin(message: Message):
     global kachki
     if not has_access(kachki, message.from_user.username.lower(), AccessLvl.VIP):
         bot.send_message(message.chat.id, get_locale(message).accessDenied)
-        return 0
+        return
     # add all aliases of all members to reply keyboard
     rmk = ReplyKeyboardMarkup(resize_keyboard=True)
     for i in get_sorted(kachki, Order.ALPHABETICAL):
@@ -483,7 +483,7 @@ def delete_answer(message: Message):
     global kachki
     if message.text not in kachki:
         bot.reply_to(message, get_locale(message).not_registered, reply_markup=rmk)
-        return 0
+        return
     # else delete member with corresponding alias from top
     bot.reply_to(message, get_locale(message).deleting, reply_markup=rmk)
     try:
@@ -504,8 +504,7 @@ def reload(message: Message):
     global kachki
     if not has_access(kachki, message.from_user.username.lower(), AccessLvl.OWNER):
         bot.send_message(message.chat.id, get_locale(message).accessDenied)
-        return 0
-    kachki = None
+        return
     load_kachki()
     bot.send_message(message.chat.id, get_locale(message).success)
 
@@ -517,7 +516,7 @@ def stop(message: Message):
     global kachki
     if not has_access(kachki, message.from_user.username.lower(), AccessLvl.OWNER):
         bot.send_message(message.chat.id, get_locale(message).accessDenied)
-        return 0
+        return
     bot.send_message(message.chat.id, get_locale(message).success)
     bot.stop_polling()
     # os.kill(os.getpid(), signal.SIGINT)
@@ -530,7 +529,7 @@ def chaccess_nikulin(message: Message):
     global kachki
     if not has_access(kachki, message.from_user.username.lower(), AccessLvl.OWNER):
         bot.send_message(message.chat.id, get_locale(message).accessDenied)
-        return 0
+        return
     # add all aliases of all members to reply keyboard
     rmk = message.ReplyKeyboardMarkup(resize_keyboard=True)
     for i in get_sorted(kachki, Order.ALPHABETICAL):
