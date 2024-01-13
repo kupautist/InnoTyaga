@@ -18,7 +18,7 @@ class Order(IntEnum):
     SELF_WEIGHT = auto()
 
 
-def get_sorted(members: dict[str, Kachok], order = Order.PP) -> list:
+def get_sorted(members: dict[str, Kachok], order = Order.PP) -> list[Kachok]:
     """function that returns list of Kachok sorted by parameter order (by defult PP)"""
     match order:
         case Order.PP:
@@ -28,7 +28,7 @@ def get_sorted(members: dict[str, Kachok], order = Order.PP) -> list:
         case Order.SELF_WEIGHT:
             return sorted(members.values(), key=lambda item: item.selfWeight, reverse=True)
         case _:
-            return None
+            raise ValueError("Wrong order argument in get_sorted()")
 
 
 def write_data():
