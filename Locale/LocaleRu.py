@@ -1,6 +1,8 @@
+from dataclasses import dataclass
 from Locale.LocaleBase import Locale
 
 
+@dataclass(frozen=True)
 class LocaleRU(Locale):
     greet = '! Добро пожаловать в innoтягу!\n Для того чтобы вывести доступные команды чиркани /help.\n' \
             'Для того чтобы вывести топ участников за всё время напишите /top.\n' \

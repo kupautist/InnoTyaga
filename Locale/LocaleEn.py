@@ -1,8 +1,10 @@
+# TODO translate bot to English
 from dataclasses import dataclass
+from LocaleBase import Locale
 
 
 @dataclass(frozen=True)
-class Locale:
+class LocaleEN(Locale):
     greet: str = ''
     schedule_: str = ''
     pp: str = ''

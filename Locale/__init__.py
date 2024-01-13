@@ -1,12 +1,15 @@
 import logging
 from Locale.LocaleBase import Locale
-from Locale.LocaleRU import LocaleRU
+from Locale.LocaleRu import LocaleRU
+# from Locale.LocaleEn import LocaleEN
 from telebot.types import Message
 
 def get_locale(code: str | Message) -> type[Locale]:
     if isinstance(code, Message):
         code = code.from_user.language_code
     match code:
+        # case 'en':
+        #     return LocaleEN
         case 'ru':
             return LocaleRU
         case _:
