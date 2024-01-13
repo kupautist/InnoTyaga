@@ -1,6 +1,6 @@
 import json
 import time
-
+from typing import Any
 from access import AccessLvl
 
 
@@ -143,7 +143,7 @@ class KachokEncoder(json.JSONEncoder):
         return super().default(obj)
 
 
-def kachok_decoder(jo) -> Kachok:
+def kachok_decoder(jo: dict[str, Any]) -> Kachok:
     member = Kachok(jo['alias'].lower(), jo['name'])
     member.access = jo['access'] if 'access' in jo else AccessLvl.MEMBER
     member.female = jo['female'] if 'female' in jo else False

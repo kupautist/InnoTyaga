@@ -2,12 +2,14 @@ import json
 import logging
 import os
 from enum import IntEnum, auto
+from typing import Any
+from telebot.types import Message
 
 from kachok import Kachok, KachokEncoder, kachok_decoder
 
 # dictionary that remember information in format user_chat_id:information
 # used in functions with register_next_step_handler
-user_dict = {}
+user_dict: dict[str, Message] = {}
 
 # dictionary of all members in alias:Kachok format, sorted after any changes
 kachki: dict[str, Kachok] = {}
@@ -42,15 +44,10 @@ def write_data():
         logging.error(e)
 
 
-def load_data(filename = 'kachki.json'):
+def load_data(filename: str = 'kachki.json') -> dict[str, Any]:
     if not os.path.isfile(filename):
-        logging.warn(f'Tried to load nonexistant file {filename}')
-        return None
-    try:
-        return json.load(open(filename, 'r'))
-    except Exception as e:
-        logging.error(e)
-        return None
+        raise FileNotFoundError(f'The {filename} does not exist')
+    return json.load(open(filename, 'r'))
 
 
 def update_records():
@@ -59,7 +56,7 @@ def update_records():
 
 
 # Load Kachki
-def load_kachki():
+def load_kachki() -> None:
     global kachki
     try:
         kachki = {m.alias : m for m in [kachok_decoder(mem) for mem in load_data()]}
@@ -74,9 +71,9 @@ def load_kachki():
         kachki = {}
 
 
-def merge_kachki(filename = 'kachki_new.json'):
+def merge_kachki(filename: str = 'kachki_new.json'):
     global kachki
-    kachki_new = None
+    kachki_new: dict[str, Kachok] = {}
     try:
         kachki_new = {m.alias : m for m in [kachok_decoder(mem) for mem in load_data(filename)]}
     except IOError as e:
