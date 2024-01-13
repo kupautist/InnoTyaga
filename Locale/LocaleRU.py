@@ -1,4 +1,4 @@
-from LocaleBase import Locale
+from Locale.LocaleBase import Locale
 
 
 class LocaleRU(Locale):

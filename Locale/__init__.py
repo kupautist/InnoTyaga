@@ -1,17 +1,16 @@
 import logging
-from LocaleBase import *
-from LocaleRU import *
+from Locale.LocaleBase import Locale
+from Locale.LocaleRU import LocaleRU
 from telebot.types import Message
 
-def get_locale(code: str) -> type[Locale]:
+def get_locale(code: str | Message) -> type[Locale]:
+    if isinstance(code, Message):
+        code = code.from_user.language_code
     match code:
         case 'ru':
             return LocaleRU
         case _:
             return LocaleRU
-
-def get_locale(msg: Message) -> type[Locale]:
-    return get_locale(msg.from_user.language_code)
 
 def __check_lang_string_class(other: type[Locale]) -> list[str]:
     result = []
