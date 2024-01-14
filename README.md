@@ -54,7 +54,7 @@ pip install -r reqirements.txt
 ### Run on Docker
 ```bash
 docker build -t tyagabot-img .
-docker run -d --name tyagabot tyagabot.img
+docker run -d --name tyagabot tyagabot-img
 ```
 
 ## Future Developments

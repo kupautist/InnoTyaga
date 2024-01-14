@@ -1,6 +1,6 @@
 # TODO translate bot to English
 from dataclasses import dataclass
-from LocaleBase import Locale
+from Locale.LocaleBase import Locale
 
 
 @dataclass(frozen=True)

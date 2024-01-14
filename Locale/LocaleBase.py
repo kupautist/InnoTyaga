@@ -1,7 +1,3 @@
-from dataclasses import dataclass
-
-
-@dataclass(frozen=True)
 class Locale:
     greet: list[str] = ['']
     schedule: str = ''
