@@ -3,16 +3,16 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class Locale:
-    greet: str = ''
-    schedule_: str = ''
+    greet: list[str] = ['']
+    schedule: str = ''
     pp: str = ''
-    empty: str = ''
+    command_unknown: str = ''
     newMemberSuccess: str = ''
-    newMemberFail: str = ''
+    alreadyRegistred: str = ''
     emptyTop: str = ''
     goodPhoto: str = ''
     regProblem: str = ''
-    commands: str = ''
+    commands: list[str] = ['']
     nikulin: str = ''
     enter_alias: str = ''
     enter_name: str = ''
@@ -25,6 +25,5 @@ class Locale:
     exception: str = ''
     weight_format: str = ''
     making_woman: str = ''
-    no_spaces: str = ''
     long_name: str = ''
     reg: str = ''

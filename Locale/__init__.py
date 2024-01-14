@@ -1,15 +1,15 @@
 import logging
 from Locale.LocaleBase import Locale
 from Locale.LocaleRu import LocaleRU
-# from Locale.LocaleEn import LocaleEN
+from Locale.LocaleEn import LocaleEN
 from telebot.types import Message
 
 def get_locale(code: str | Message) -> type[Locale]:
     if isinstance(code, Message):
         code = code.from_user.language_code
     match code:
-        # case 'en':
-        #     return LocaleEN
+        case 'en':
+            return LocaleEN
         case 'ru':
             return LocaleRU
         case _:
@@ -18,7 +18,7 @@ def get_locale(code: str | Message) -> type[Locale]:
 def __check_lang_string_class(other: type[Locale]) -> list[str]:
     result = []
     for k in Locale.__dict__:
-        if not k.startswith('__') and ((k not in other.__dict__) or other.__dict__[k] == ''):
+        if not k.startswith('__') and ((k not in other.__dict__) or (other.__dict__[k] is '' or [''])):
             result.append(f'{other.__name__} has no {k} field.')
     return result
 

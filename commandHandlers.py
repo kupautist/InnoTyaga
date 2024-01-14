@@ -15,7 +15,7 @@ from Locale import get_locale
 @bot.message_handler(commands=['start'])
 def start(message: Message):
     """function that greets the user"""
-    bot.send_message(message.chat.id, f'Здарова, {message.from_user.first_name} {message.from_user.last_name}' + get_locale(message).greet)
+    bot.send_message(message.chat.id, f'{get_locale(message).greet[0]}, {message.from_user.first_name} {message.from_user.last_name}' + get_locale(message).greet[1])
 
 
 @bot.message_handler(commands=['help'])
@@ -34,7 +34,7 @@ def commands_list(message: Message):
 @bot.message_handler(commands=['schedule'])
 def schedule(message: Message):
     """function that send to user schedule of club meetings"""
-    bot.send_message(message.chat.id, get_locale(message).schedule_)
+    bot.send_message(message.chat.id, get_locale(message).schedule)
 
 
 @bot.message_handler(commands=['pp'])
@@ -76,7 +76,7 @@ def register(message: Message):
             update_records()
         # if user already in top report about it
         else:
-            bot.send_message(message.chat.id, get_locale(message).newMemberFail)
+            bot.send_message(message.chat.id, get_locale(message).alreadyRegistred)
     # report about if happen something unexpected
     except Exception as e:
         logging.error(e)
@@ -124,7 +124,7 @@ def olduser_answer(message: Message):
     user_dict[message.from_user.id] = [alias]
     # print(user_dict[message.from_user.id])
     if user_dict[message.from_user.id][0] in kachki:
-        msg = bot.reply_to(message, get_locale(message).newMemberFail)
+        msg = bot.reply_to(message, get_locale(message).alreadyRegistred)
         bot.register_next_step_handler(msg, olduser_answer)
     # member's name requested
     msg = bot.reply_to(message, get_locale(message).enter_name)
@@ -567,13 +567,13 @@ def chaccess_answer_2(message: Message):
         bot.send_message(message.chat.id, get_locale(message).exception, reply_markup=rmk)
 
 
-@bot.message_handler()
-def wrong_command(message: Message):
-    """function that send to user information that such command did not exist"""
-    bot.send_message(message.chat.id, get_locale(message).empty)
-
-
 @bot.message_handler(content_types=['photo'])
 def photo(message: Message):
     """function that handles photos"""
     bot.reply_to(message, get_locale(message).goodPhoto)
+
+
+@bot.message_handler()
+def wrong_command(message: Message):
+    """function that send to user information that such command did not exist"""
+    bot.send_message(message.chat.id, get_locale(message).command_unknown)
