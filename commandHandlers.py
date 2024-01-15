@@ -3,11 +3,11 @@ import os
 import signal
 
 from telebot.types import Message, ReplyKeyboardMarkup, ReplyKeyboardRemove
+from telebot.formatting import escape_reserved_markdown
 
 from access import AccessLvl, access_from_str, has_access
 from botInstance import bot
-from data import (Order, get_sorted, kachki, load_kachki, update_records,
-                  user_dict)
+from data import Order, get_sorted, kachki, load_kachki, update_records, user_dict
 from kachok import Kachok
 from Locale import get_locale
 
@@ -15,7 +15,11 @@ from Locale import get_locale
 @bot.message_handler(commands=['start'])
 def start(message: Message):
     """function that greets the user"""
-    bot.send_message(message.chat.id, f'{get_locale(message).greet[0]}, {message.from_user.first_name} {message.from_user.last_name}' + get_locale(message).greet[1])
+    bot.send_message(message.chat.id, '{}, {} {}{}'.format(
+        get_locale(message).greet[0],
+        message.from_user.first_name,
+        message.from_user.last_name,
+        get_locale(message).greet[1]))
 
 
 @bot.message_handler(commands=['help'])
@@ -28,13 +32,16 @@ def commands_list(message: Message):
         bot.send_message(message.chat.id, get_locale(message).reg)
         return
     for i in range(0, kachki[alias].access + 1):
-        bot.send_message(message.chat.id, get_locale(message).commands[i])
+        bot.send_message(message.chat.id,
+                         escape_reserved_markdown(get_locale(message).commands[i]),
+                         parse_mode='MarkdownV2')
 
 
 @bot.message_handler(commands=['schedule'])
 def schedule(message: Message):
     """function that send to user schedule of club meetings"""
-    bot.send_message(message.chat.id, get_locale(message).schedule)
+    bot.send_message(message.chat.id, escape_reserved_markdown(get_locale(message).schedule),
+                     parse_mode='MarkdownV2')
 
 
 @bot.message_handler(commands=['pp'])
@@ -120,7 +127,7 @@ def olduser_answer(message: Message):
     # alias can be written in both ways: with and without @, next if-else handles both
     # member's alias saved
     global user_dict, kachki
-    alias = ('@' + message.text if message.text[0] != '@' else message.text).lower()
+    alias = (f'@{message.text}' if message.text[0] != '@' else message.text).lower()
     user_dict[message.from_user.id] = [alias]
     # print(user_dict[message.from_user.id])
     if user_dict[message.from_user.id][0] in kachki:
@@ -438,6 +445,10 @@ def new_user_answer_2(message: Message):
     global kachki, user_dict
     try:
         # add to the top new Kachok with received alias and name
+        if len(message.text) > 16:
+            msg = bot.reply_to(message, get_locale(message).long_name)
+            bot.register_next_step_handler(msg, new_user_answer_2)
+            return
         name = message.text
         alias = user_dict[message.from_user.id]
         kachki[alias] = Kachok(alias, name)
