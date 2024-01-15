@@ -2,7 +2,7 @@
 
 ![InnoTyaga Logo](logo.png)
 
-InnoTyaga is an unofficial club in Innopolis, boasting over 30 active members. This python bot was developed by @kupamonke to aid in the management of the club, particularly with handling points calculation for each member and automatically updating the leaderboard.
+InnoTyaga is an unofficial sports club in Innopolis, boasting over 30 active members. This python bot was developed by @kupamonke, @NeRaG0n7, and partially by @fatcakes to aid in the management of the club, particularly with handling points calculation for each member and automatically updating the leaderboard.
 
 - [InnoTyaga Python Bot](#innotyaga-python-bot)
   - [Overview](#overview)
