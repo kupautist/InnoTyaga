@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-import telebot
+from telebot import TeleBot
 
 load_dotenv('.env')
-bot = telebot.TeleBot(os.environ.get('BOT_TOKEN'))
+bot = TeleBot(os.environ.get('BOT_TOKEN'))

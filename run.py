@@ -1,4 +1,6 @@
+#!/usr/bin/env python3.12
 import logging
+
 from botInstance import bot
 from commandHandlers import *
 
@@ -7,4 +9,8 @@ logging.basicConfig(
     level=logging.WARN
 )
 
-bot.infinity_polling(logger_level=logging.WARN)
+def main():
+    bot.infinity_polling(logger_level=logging.WARN)
+
+if __name__ == '__main__':
+    main()
