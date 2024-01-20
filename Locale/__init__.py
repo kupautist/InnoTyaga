@@ -30,7 +30,7 @@ def __check_lang_string_classes() -> None:
     locale_errors = [item for list in [__check_lang_string_class(
         i) for i in __locale_classes] for item in list]
     if locale_errors:
-        logging.error('\n'.join(locale_errors))
+        logging.getLogger("LocaleCheck").error('\n'.join(locale_errors))
 
 
 __check_lang_string_classes()
