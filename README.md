@@ -48,7 +48,7 @@ For club admins, known as "TA's" of InnoTyaga, the bot provides additional featu
 ```bash
 git clone https://github.com/LocalT0aster/InnoTyaga.git
 cd InnoTyaga
-pip install -r reqirements.txt
+pip install -r requirements.txt
 ```
 
 ### Run on Docker
