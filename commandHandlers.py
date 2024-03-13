@@ -10,6 +10,12 @@ from data import kachki, user_dict, update_records, get_sorted, Order, load_kach
 @bot.message_handler(commands=['start', 'начать'])
 def start(user):
     """function that greets the user"""
+    bot.send_message(user.chat.id, 'Начинаем упражнения')
+
+
+@bot.message_handler(commands=['start', 'начать'])
+def start(user):
+    """function that greets the user"""
     bot.send_message(user.chat.id, f'Здарова, {user.from_user.first_name} {user.from_user.last_name}' + RU.greet)
 
 
@@ -61,6 +67,11 @@ def grading(user):
 @bot.message_handler(commands=['top'])
 def top(user):
     """function that display top"""
+    # check if user try to look on top in innotyaga chat
+    if user.chat.id == -1001870075992:
+        # report about error
+        bot.send_message(user.chat.id, 'Пошёл нахуй')
+        return 0
     global kachki
     counter = 0
     result = ''
@@ -104,18 +115,37 @@ def info(user):
     """function that display personal member profile"""
     global kachki
     try:
-        # function takes alias and name of user who send this command
-        alias = '@' + user.from_user.username.lower()
+        trash, alias = user.text.split()
         if alias not in kachki:
-            bot.send_message(user.chat.id, RU.reg)
+            bot.send_message(user.chat.id, RU.notReg)
         # if user already in top report about it
         else:
-            info = kachki[alias].info()
-            bot.send_message(user.chat.id, info)
-    # report about if happen something unexpected
-    except Exception as e:
-        logging.error(e)
-        bot.send_message(user.chat.id, RU.regProblem)
+            bot.send_message(user.chat.id, kachki[alias].info())
+    except ValueError:
+        try:
+            # function takes alias and name of user who send this command
+            alias = '@' + user.from_user.username.lower()
+            if alias not in kachki:
+                bot.send_message(user.chat.id, RU.reg)
+            # if user already in top report about it
+            else:
+                bot.send_message(user.chat.id, kachki[alias].info())
+        # report about if happen something unexpected
+        except Exception as e:
+            logging.error(e)
+            bot.send_message(user.chat.id, RU.regProblem)
+
+
+@bot.message_handler(commands=['do_some_print'])
+def user_chat(user):
+    """part 1 of function that add to top old member"""
+    # only several users can use this command
+    global kachki
+    if not has_access(kachki, user.from_user.username.lower(), AccessLvl.VIP):
+        bot.send_message(user.chat.id, RU.accessDenied)
+        return 0
+    bot.send_message(user.chat.id, "Успешно")
+    print(user.chat.id)
 
 
 @bot.message_handler(commands=['olduser'])
@@ -226,6 +256,26 @@ def change_alias(user):
     # alias requested
     msg = bot.reply_to(user, RU.enter_alias, reply_markup=rmk)
     bot.register_next_step_handler(msg, change_alias_answer)
+
+
+@bot.message_handler(commands=['attendance'])
+def attendance_by_date(user):
+    global kachki
+    try:
+        trash, date = user.text.split()
+    except ValueError:
+        bot.send_message(user.chat.id, RU.wrongFormat)
+        return 0
+    try:
+        d, m, y = date.split('/')
+    except ValueError:
+        bot.send_message(user.chat.id, RU.wrongDateFormat)
+        return 0
+    text = 'Вот они, гады\n'
+    for i in kachki.values():
+        if date in i.proteinPointsByDate:
+            text += i.alias + '\n'
+    bot.send_message(user.chat.id, text)
 
 
 def change_alias_answer(user):

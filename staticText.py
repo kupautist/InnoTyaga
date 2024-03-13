@@ -1,5 +1,8 @@
 # static text for sending to user
 class RU:
+    notReg = 'Братан, нет такого алиаса'
+    wrongDateFormat = "введите дату в формате d/m/Yнапример 25/11/2023 "
+    wrongFormat = 'Введите команду в формате /attendance date'
     enter_new_alias = 'Заебись'
     greet = '! Добро пожаловать в innoтягу!\n Для того чтобы вывести доступные команды чиркани /help.\n' \
             'Для того чтобы вывести топ участников за всё время напишите /top.\n' \

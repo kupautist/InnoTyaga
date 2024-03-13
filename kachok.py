@@ -106,7 +106,7 @@ class Kachok:
         # Member's max weight updates if needed
         self.weight = max(float(weight), self.weight)
         # Member's max points updates if needed
-        weight = float(weight) * 0.5
+        weight = float(weight) * 0.7
         if self.female:
             self.proteinPoints = max(self.proteinPoints, float(weight)*1.64 / self.selfWeight)
         else:
@@ -137,7 +137,8 @@ class Kachok:
         return self.name + ' ' + self.alias + ' - ' + str(int(self.weight)) + 'kg - ' + str(int(self.proteinPoints * 100)) + 'PP, ' + self.mark
                 
     def info(self):
-        result = self.name + ' ' + self.alias + ' - ' +  (' M\n' if (not self.female) else ' F\n') + \
+        result = self.name + ' ' + self.alias + ' - ' +  (' M ' if (not self.female) else ' F ') +\
+                 str(self.selfWeight) + '\n' \
             'Рекорд: ' + str(self.weight) + 'kg (' + str(int(self.proteinPoints*100)) + 'PP, ' + self.mark + ')\n'
         if (not self.proteinPointsByDate):
             return result + 'Вы пока ничего ещё не пожали. Пожмите хотя бы пустую штангу (20кг), я верю в вас!!!'
