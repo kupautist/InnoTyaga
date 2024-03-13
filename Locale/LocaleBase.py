@@ -23,3 +23,6 @@ class Locale:
     making_woman: str = ''
     long_name: str = ''
     reg: str = ''
+    personal_best: str = ''
+    no_weight: str = ''
+    info_history: list[str] = ['']
