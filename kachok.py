@@ -163,27 +163,32 @@ class Kachok:
         """
         return f'{self.name} {self.alias} - {str(int(self.weight))}kg - {str(int(self.proteinPoints * 100))}PP ({self.mark})'
 
-    def info(self, locale: str | Locale) -> str:
+    def info(self, locale: str) -> str:
         """String representation of the member's personal info
 
         Parameters
         ----------
-        locale : str | Locale
-            User's locale
+        locale : str
+            User's locale country code
 
         Returns
         -------
         str
             formatted and localized short info on member
         """
-        result = '{} {} - {}\n{}: {}kg - {}PP ({})\n'.format(
+        result = ['{} {} - {}\n{}: {}kg - {}PP ({})'.format(
             self.name, self.alias, ('M' if (not self.female) else 'F'),
-            get_locale(locale).personal_best, str(self.weight), str(int(self.proteinPoints*100)), self.mark)
+            get_locale(locale).personal_best, str(self.weight), str(int(self.proteinPoints*100)), self.mark)]
         if (not self.proteinPointsByDate):
-            return result + get_locale(locale).no_weight
-        for i in self.proteinPointsByDate:
-            result += f'{str(i)} {get_locale(locale).info_history[0]} {str(self.weightByDate[i])}kg {get_locale(locale).info_history[1]} {str(int(self.proteinPointsByDate[i]*100))}PP'
-        return result
+            result.append(get_locale(locale).no_weight)
+            return '\n'.join(result)
+
+        for k, v in self.proteinPointsByDate.items():
+            result.append('{} {} {}kg {} {}PP'.format(
+                str(k), get_locale(locale).info_history[0], str(self.weightByDate[k]),
+                get_locale(locale).info_history[1], str(int(v*100))))
+
+        return '\n'.join(result)
 
 
 class KachokEncoder(json.JSONEncoder):
