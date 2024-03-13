@@ -62,3 +62,6 @@ class LocaleEN(Locale):
     making_woman = 'Turning the member into a woman...'
     long_name = 'The name is too long, limit it to 16 characters.\nTry again.'
     reg = "You are not registered, but you can fix it with the command /register"
+    personal_best = "Personal Best"
+    no_weight = "You haven't lifted anything yet. At least lift an empty barbell (20kg), I believe in you!!!"
+    info_history = ["you lifted", "and got"]

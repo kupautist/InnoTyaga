@@ -33,7 +33,7 @@ def get_sorted(members: dict[str, Kachok], order = Order.PP) -> list[Kachok]:
             raise ValueError("Wrong order argument in get_sorted()")
 
 
-def write_data():
+def write_data() -> None:
     """function that dumps kachki dictionary into a kachki.json"""
     try:
         with open('kachki.json', 'w') as f:
@@ -44,13 +44,13 @@ def write_data():
         logging.error(e)
 
 
-def load_data(filename: str = 'kachki.json') -> dict[str, Any]:
+def load_data(filename: str = 'kachki.json') -> list[dict[str, Any]]:
     if not os.path.isfile(filename):
         raise FileNotFoundError(f'The {filename} does not exist')
     return json.load(open(filename, 'r'))
 
 
-def update_records():
+def update_records() -> None:
     """function that updates the records of kachki"""
     write_data()
 
@@ -71,7 +71,7 @@ def load_kachki() -> None:
         kachki = {}
 
 
-def merge_kachki(filename: str = 'kachki_new.json'):
+def merge_kachki(filename: str = 'kachki_new.json') -> None:
     global kachki
     kachki_new: dict[str, Kachok] = {}
     try:
@@ -97,6 +97,7 @@ def merge_kachki(filename: str = 'kachki_new.json'):
                 kachki[k.alias].mark = max(k.mark, kachki[k.alias].mark)
                 kachki[k.alias].proteinPointsByDate = kachki[k.alias].proteinPointsByDate | k.proteinPointsByDate
                 kachki[k.alias].weightByDate = kachki[k.alias].weightByDate | k.weightByDate
+                kachki[k.alias].selfWeightByDate = kachki[k.alias].selfWeightByDate | k.selfWeightByDate
     except Exception as e:
         logging.error('Exception caught while merging db')
         logging.error(e)
