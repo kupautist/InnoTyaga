@@ -12,7 +12,7 @@ class Kachok:
         # Since there are very few women in the club, this is more convenient than adding methods
         if name[-1] == '*':
             self.female = True
-            self.name = name[0, -1]
+            self.name = name[0:-1]
         else:
             self.female = False
             self.name = name
