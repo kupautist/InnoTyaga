@@ -1,6 +1,4 @@
 import logging
-import os
-import signal
 
 from telebot.types import Message, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telebot.formatting import escape_reserved_markdown
@@ -13,7 +11,7 @@ from Locale import get_locale
 
 
 @bot.message_handler(commands=['start'])
-def start(message: Message):
+def start(message: Message) -> None:
     """function that greets the user"""
     bot.send_message(message.chat.id, '{}, {} {}{}'.format(
         get_locale(message).greet[0],
@@ -23,7 +21,7 @@ def start(message: Message):
 
 
 @bot.message_handler(commands=['help'])
-def commands_list(message: Message):
+def commands_list(message: Message) -> None:
     """function that send to user list of possible commands and their description"""
     alias = '@' + message.from_user.username.lower()
     message.from_user.language_code
@@ -38,20 +36,20 @@ def commands_list(message: Message):
 
 
 @bot.message_handler(commands=['schedule'])
-def schedule(message: Message):
+def schedule(message: Message) -> None:
     """function that send to user schedule of club meetings"""
     bot.send_message(message.chat.id, escape_reserved_markdown(get_locale(message).schedule),
                      parse_mode='MarkdownV2')
 
 
 @bot.message_handler(commands=['pp'])
-def grading(message: Message):
+def grading(message: Message) -> None:
     """function that send to user grading information"""
     bot.send_message(message.chat.id, get_locale(message).pp)
 
 
 @bot.message_handler(commands=['top'])
-def top(message: Message):
+def top(message: Message) -> None:
     """function that display top"""
     global kachki
     counter = 0
@@ -69,7 +67,7 @@ def top(message: Message):
 
 
 @bot.message_handler(commands=['register'])
-def register(message: Message):
+def register(message: Message) -> None:
     """function that add to top member who send "/register" message"""
     global kachki
     try:
@@ -91,7 +89,7 @@ def register(message: Message):
 
 
 @bot.message_handler(commands=['info'])
-def info(message: Message):
+def info(message: Message) -> None:
     """function that display personal member profile"""
     global kachki
     try:
@@ -101,7 +99,7 @@ def info(message: Message):
             bot.send_message(message.chat.id, get_locale(message).reg)
         # if user already in top report about it
         else:
-            info = kachki[alias].info()
+            info = kachki[alias].info(message.from_user.language_code)
             bot.send_message(message.chat.id, info)
     # report about if happen something unexpected
     except Exception as e:
@@ -110,7 +108,7 @@ def info(message: Message):
 
 
 @bot.message_handler(commands=['olduser'])
-def old_user(message: Message):
+def old_user(message: Message) -> None:
     """part 1 of function that add to top old member"""
     # only several users can use this command
     global kachki
@@ -122,7 +120,7 @@ def old_user(message: Message):
     bot.register_next_step_handler(msg, olduser_answer)
 
 
-def olduser_answer(message: Message):
+def olduser_answer(message: Message) -> None:
     """part 2 of function that add to top old member"""
     # alias can be written in both ways: with and without @, next if-else handles both
     # member's alias saved
@@ -138,7 +136,7 @@ def olduser_answer(message: Message):
     bot.register_next_step_handler(msg, olduser_answer_2)
 
 
-def olduser_answer_2(message: Message):
+def olduser_answer_2(message: Message) -> None:
     """part 3 of function that add to top old member"""
     # check if name too long
     global user_dict
@@ -153,7 +151,7 @@ def olduser_answer_2(message: Message):
     bot.register_next_step_handler(msg, olduser_answer_3)
 
 
-def olduser_answer_3(message: Message):
+def olduser_answer_3(message: Message) -> None:
     """part 4 of function that add to top old member"""
     # check if self weight format incorrect
     global user_dict
@@ -171,7 +169,7 @@ def olduser_answer_3(message: Message):
     bot.register_next_step_handler(msg, olduser_answer_4)
 
 
-def olduser_answer_4(message: Message):
+def olduser_answer_4(message: Message) -> None:
     """part 5 of function that add to top old member"""
     global user_dict, kachki
     # check if weight format incorrect
@@ -203,7 +201,7 @@ def olduser_answer_4(message: Message):
 
 
 @bot.message_handler(commands=['changename'])
-def change_name(message: Message):
+def change_name(message: Message) -> None:
     """function that change member's name"""
     # only several users can use this command
     global kachki
@@ -219,7 +217,7 @@ def change_name(message: Message):
     bot.register_next_step_handler(msg, change_name_answer)
 
 
-def change_name_answer(message: Message):
+def change_name_answer(message: Message) -> None:
     """next part of change_name"""
     global kachki
     # report if user with such alias not registered
@@ -235,7 +233,7 @@ def change_name_answer(message: Message):
     bot.register_next_step_handler(msg, change_name_answer_2)
 
 
-def change_name_answer_2(message: Message):
+def change_name_answer_2(message: Message) -> None:
     """next part of change_name_answer"""
     # check if name too long
     if len(message.text) > 16:
@@ -259,7 +257,7 @@ def change_name_answer_2(message: Message):
 
 
 @bot.message_handler(commands=['makefemale'])
-def make_female(message: Message):
+def make_female(message: Message) -> None:
     """function that can be helpful if * forgotten while adding female member"""
     # only several users can use this command
     global kachki
@@ -275,7 +273,7 @@ def make_female(message: Message):
     bot.register_next_step_handler(msg, make_female_answer)
 
 
-def make_female_answer(message: Message):
+def make_female_answer(message: Message) -> None:
     """next part of make_female"""
     # report if user with such alias not registered
     global kachki
@@ -302,7 +300,7 @@ def make_female_answer(message: Message):
 
 
 @bot.message_handler(commands=['setweight'])
-def set_weight(message: Message):
+def set_weight(message: Message) -> None:
     """function that used to change member weight"""
     # only several users can use this command
     global kachki
@@ -318,7 +316,7 @@ def set_weight(message: Message):
     bot.register_next_step_handler(msg, set_weight_answer)
 
 
-def set_weight_answer(message: Message):
+def set_weight_answer(message: Message) -> None:
     """next part of set_weight"""
     # report if user with such alias not registered
     global user_dict, kachki
@@ -334,7 +332,7 @@ def set_weight_answer(message: Message):
     bot.register_next_step_handler(msg, set_weight_answer_2)
 
 
-def set_weight_answer_2(message: Message):
+def set_weight_answer_2(message: Message) -> None:
     """next part of set_weight_answer"""
     # check if weight format incorrect
     try:
@@ -361,7 +359,7 @@ def set_weight_answer_2(message: Message):
 
 
 @bot.message_handler(commands=['setselfweight'])
-def set_self_weight(message: Message):
+def set_self_weight(message: Message) -> None:
     """function for changing member self weight"""
     # only several users can use this command
     global kachki
@@ -377,7 +375,7 @@ def set_self_weight(message: Message):
     bot.register_next_step_handler(msg, setselfweight_answer)
 
 
-def setselfweight_answer(message: Message):
+def setselfweight_answer(message: Message) -> None:
     """next part of set_self_weight"""
     # report if user with such alias not registered
     global user_dict, kachki
@@ -392,7 +390,7 @@ def setselfweight_answer(message: Message):
     bot.register_next_step_handler(msg, setselfweight_answer_2)
 
 
-def setselfweight_answer_2(message: Message):
+def setselfweight_answer_2(message: Message) -> None:
     """next part of setselfweight_answer"""
     # check if weight format inncorrect
     try:
@@ -418,7 +416,7 @@ def setselfweight_answer_2(message: Message):
 
 
 @bot.message_handler(commands=['newuser'])
-def new_user(message: Message):
+def new_user(message: Message) -> None:
     """function that add to top new member"""
     # only several users can use this command
     if not has_access(kachki, message.from_user.username.lower(), AccessLvl.VIP):
@@ -429,7 +427,7 @@ def new_user(message: Message):
     bot.register_next_step_handler(msg, new_user_answer)
 
 
-def new_user_answer(message: Message):
+def new_user_answer(message: Message) -> None:
     """next part of new_user"""
     # alias can be written in both ways: with and without @, next if-else handles both ways
     global user_dict
@@ -440,7 +438,7 @@ def new_user_answer(message: Message):
     bot.register_next_step_handler(msg, new_user_answer_2)
 
 
-def new_user_answer_2(message: Message):
+def new_user_answer_2(message: Message) -> None:
     """next part of new_user_answer"""
     global kachki, user_dict
     try:
@@ -463,14 +461,14 @@ def new_user_answer_2(message: Message):
 
 
 @bot.message_handler(commands=['danilnikulin', 'DanilNikulin'])
-def danil_nikulin(message: Message):
+def danil_nikulin(message: Message) -> None:
     """DanilNikulin"""
     for i in range(10):
         bot.send_message(message.chat.id, get_locale(message).nikulin)
 
 
 @bot.message_handler(commands=['delete'])
-def delete_nikulin(message: Message):
+def delete_nikulin(message: Message) -> None:
     """function that make able to delete members from top"""
     # only several users can use this command
     global kachki
@@ -486,7 +484,7 @@ def delete_nikulin(message: Message):
     bot.register_next_step_handler(msg, delete_answer)
 
 
-def delete_answer(message: Message):
+def delete_answer(message: Message) -> None:
     """next part of delete_nikulin"""
     # clear reply keyboard
     rmk = ReplyKeyboardRemove(selective=False)
@@ -509,7 +507,7 @@ def delete_answer(message: Message):
 
 
 @bot.message_handler(commands=['reload'])
-def reload(message: Message):
+def reload(message: Message) -> None:
     """reloads the data from db"""
     # only several users can use this command
     global kachki
@@ -521,7 +519,7 @@ def reload(message: Message):
 
 
 @bot.message_handler(commands=['stop'])
-def stop(message: Message):
+def stop(message: Message) -> None:
     """reloads the data from db"""
     # only several users can use this command
     global kachki
@@ -530,11 +528,10 @@ def stop(message: Message):
         return
     bot.send_message(message.chat.id, get_locale(message).success)
     bot.stop_polling()
-    # os.kill(os.getpid(), signal.SIGINT)
 
 
 @bot.message_handler(commands=['chaccess'])
-def chaccess_nikulin(message: Message):
+def chaccess_nikulin(message: Message) -> None:
     """changes access level of a member"""
     # only several users can use this command
     global kachki
@@ -550,7 +547,7 @@ def chaccess_nikulin(message: Message):
     bot.register_next_step_handler(msg, chaccess_answer)
 
 
-def chaccess_answer(message: Message):
+def chaccess_answer(message: Message) -> None:
     global user_dict
     alias = '@' + message.text if message.text[0] != '@' else message.text
     user_dict[message.from_user.id] = alias
@@ -564,7 +561,7 @@ def chaccess_answer(message: Message):
     bot.register_next_step_handler(msg, chaccess_answer_2)
 
 
-def chaccess_answer_2(message: Message):
+def chaccess_answer_2(message: Message) -> None:
     global kachki, user_dict
     rmk = ReplyKeyboardRemove(selective=False)
     try:
@@ -578,13 +575,13 @@ def chaccess_answer_2(message: Message):
         bot.send_message(message.chat.id, get_locale(message).exception, reply_markup=rmk)
 
 
-@bot.message_handler(content_types=['photo'])
-def photo(message: Message):
+@bot.message_handler(content_types=['photo'], chat_types=['private'])
+def photo(message: Message) -> None:
     """function that handles photos"""
     bot.reply_to(message, get_locale(message).goodPhoto)
 
 
-@bot.message_handler()
-def wrong_command(message: Message):
+@bot.message_handler(chat_types=['private'])
+def wrong_command(message: Message) -> None:
     """function that send to user information that such command did not exist"""
     bot.send_message(message.chat.id, get_locale(message).command_unknown)
