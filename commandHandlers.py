@@ -1,4 +1,5 @@
 import logging
+import sqlite3
 
 from telebot.types import Message, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telebot.formatting import escape_reserved_markdown
@@ -8,6 +9,28 @@ from botInstance import bot
 from data import Order, get_sorted, kachki, load_kachki, update_records, user_dict
 from kachok import Kachok
 from Locale import get_locale
+
+
+def save_some_data():
+    connect = sqlite3.connect('kachki.protein')
+    cursor = connect.cursor()
+    for kachok in kachki.values():
+        try:
+            cursor.execute('INSERT INTO kachki (id, name, chips, alias) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                          (i.chat_id, i.name, i.chips, i.alias))
+        except Exception:
+            cursor.execute('UPDATE eblans SET name = ?, chips = ?, alias = ? WHERE id = ?',
+                          (i.name, i.chips, i.alias, i.chat_id))
+    connect.commit()
+    return 0
+
+
+def data_load_decorator(function):
+    """decorator that update database after function execution"""
+    def wrapper(user):
+        function(user)
+        save_some_data()
+    return wrapper
 
 
 @bot.message_handler(commands=['start'])
@@ -65,6 +88,7 @@ def top(message: Message) -> None:
     else:
         bot.send_message(message.chat.id, result)
 
+
 @bot.message_handler(commands=['top'], chat_types=['group', 'supergroup', 'channel'])
 def top(message: Message) -> None:
     bot.send_message(message.chat.id, "Пошёл нахуй")
@@ -77,10 +101,10 @@ def register(message: Message) -> None:
     try:
         # function takes alias and name of user who send this command
         alias = '@' + message.from_user.username.lower()
-        name = message.from_user.first_name
+        name = message.from_user.first_name[:19]
         # add user to top and sort it
         if alias not in kachki:
-            kachki[alias] = Kachok(alias, name)
+            kachki[alias] = Kachok(alias, name, message.chat.id)
             bot.send_message(message.chat.id, get_locale(message).newMemberSuccess)
             update_records()
         # if user already in top report about it
@@ -109,99 +133,6 @@ def info(message: Message) -> None:
     except Exception as e:
         logging.error(e)
         bot.send_message(message.chat.id, get_locale(message).regProblem)
-
-
-@bot.message_handler(commands=['olduser'])
-def old_user(message: Message) -> None:
-    """part 1 of function that add to top old member"""
-    # only several users can use this command
-    global kachki
-    if not has_access(kachki, message.from_user.username.lower(), AccessLvl.VIP):
-        bot.send_message(message.chat.id, get_locale(message).accessDenied)
-        return
-    # member's alias requested
-    msg = bot.reply_to(message, get_locale(message).enter_alias)
-    bot.register_next_step_handler(msg, olduser_answer)
-
-
-def olduser_answer(message: Message) -> None:
-    """part 2 of function that add to top old member"""
-    # alias can be written in both ways: with and without @, next if-else handles both
-    # member's alias saved
-    global user_dict, kachki
-    alias = (f'@{message.text}' if message.text[0] != '@' else message.text).lower()
-    user_dict[message.from_user.id] = [alias]
-    # print(user_dict[message.from_user.id])
-    if user_dict[message.from_user.id][0] in kachki:
-        msg = bot.reply_to(message, get_locale(message).alreadyRegistred)
-        bot.register_next_step_handler(msg, olduser_answer)
-    # member's name requested
-    msg = bot.reply_to(message, get_locale(message).enter_name)
-    bot.register_next_step_handler(msg, olduser_answer_2)
-
-
-def olduser_answer_2(message: Message) -> None:
-    """part 3 of function that add to top old member"""
-    # check if name too long
-    global user_dict
-    if len(message.text) > 16:
-        msg = bot.reply_to(message, get_locale(message).long_name)
-        bot.register_next_step_handler(msg, olduser_answer_2)
-        return
-    # member's name saved
-    user_dict[message.from_user.id].append(message.text)
-    # member's self weight requested
-    msg = bot.reply_to(message, get_locale(message).enter_self_weight)
-    bot.register_next_step_handler(msg, olduser_answer_3)
-
-
-def olduser_answer_3(message: Message) -> None:
-    """part 4 of function that add to top old member"""
-    # check if self weight format incorrect
-    global user_dict
-    try:
-        float(message.text)
-    except ValueError as e:
-        logging.info(e)
-        msg = bot.send_message(message.chat.id, get_locale(message).weight_format)
-        bot.register_next_step_handler(msg, olduser_answer_3)
-        return
-    # member's self weight saved
-    user_dict[message.from_user.id].append(message.text)
-    # member's weight requested
-    msg = bot.reply_to(message, get_locale(message).enter_weight)
-    bot.register_next_step_handler(msg, olduser_answer_4)
-
-
-def olduser_answer_4(message: Message) -> None:
-    """part 5 of function that add to top old member"""
-    global user_dict, kachki
-    # check if weight format incorrect
-    try:
-        float(message.text)
-    except ValueError as e:
-        logging.info(e)
-        msg = bot.send_message(message.chat.id, get_locale(message).weight_format)
-        bot.register_next_step_handler(msg, olduser_answer_4)
-        return
-    # member's weight saved
-    user_dict[message.from_user.id].append(message.text)
-    try:
-        # saved information taken
-        alias, name, self_weight, weight = user_dict[message.from_user.id]
-        alias = alias.lower()
-        # information about new member added to top
-        member = Kachok(alias, name)
-        member.set_self_weight(self_weight)
-        member.set_weight(weight)
-        kachki[alias] = member
-        bot.send_message(message.chat.id, get_locale(message).newMemberSuccess)
-        update_records()
-    # report about if happen something unexpected
-    except Exception as e:
-        logging.error(e)
-        bot.send_message(message.chat.id, get_locale(message).exception)
-    user_dict[message.from_user.id] = None
 
 
 @bot.message_handler(commands=['changename'])
@@ -250,7 +181,7 @@ def change_name_answer_2(message: Message) -> None:
         alias = user_dict[message.from_user.id]
         name = message.text.lower()
         # name changed
-        kachki[alias].set_name(name)
+        kachki[alias].name = name[0:19]
         update_records()
         bot.send_message(message.chat.id, get_locale(message).success)
     # report about if happen something unexpected

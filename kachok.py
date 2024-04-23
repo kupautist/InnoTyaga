@@ -8,7 +8,7 @@ from Locale import get_locale, Locale
 class Kachok:
     """Class that represents club members"""
 
-    def __init__(self, alias: str, name: str) -> None:
+    def __init__(self, alias: str, name: str, chat_id: int) -> None:
         """Initializes the member record (Kachok object)
 
         alias and name enough to initialize member, other information can be added later
@@ -26,28 +26,24 @@ class Kachok:
         if name[-1] == '*':
             self.female = True
             self.name = name[0:-1]
+            self.name = name[:19]
         else:
             self.female = False
-            self.name = name
-
+            self.name = name[:19]
         self.alias: str = alias
         """Telegram alias of club member"""
+        self.chat_id = chat_id
+        """user chat id of club member"""
         self.access: AccessLvl = AccessLvl.MEMBER
         """Member's current access level"""
         self.selfWeight: float = 100
         """Member's current self weight"""
-        self.weight: float = 0
-        """Member's max weight"""
-        self.proteinPoints: float = 0
-        """Member's max points"""
+        self.weights: dict = {'bench press': 0, 'squat': 0, 'biceps curl': 0}
+        """Member's max weights in format exercise: weight"""
+        self.proteinPoints: dict = {'bench press': 0, 'squat': 0, 'biceps curl': 0}
+        """Member's max points in format exercise: points"""
         self.mark: str = "D"
         """Member's best grade"""
-        self.proteinPointsByDate: dict[str, float] = {}
-        """History of points in format date:points"""
-        self.weightByDate: dict[str, float] = {}
-        """History of weights in format date:kg"""
-        self.selfWeightByDate: dict[str, float] = {}
-        """History of self weight in format date:kg"""
 
         # Hardcoded owner
         if alias == '@kupamonke' or alias == '@nerag0n7':
@@ -58,15 +54,13 @@ class Kachok:
         return isinstance(__value, Kachok) and \
             self.alias == __value.alias and \
             self.name == __value.name and \
+            self.chat_id == __value.chat_id and \
             self.female == __value.female and \
             self.access == __value.access and \
             self.selfWeight == __value.selfWeight and \
             self.weight == __value.weight and \
             self.proteinPoints == __value.proteinPoints and \
-            self.mark == __value.mark and \
-            self.proteinPointsByDate == __value.proteinPointsByDate and \
-            self.weightByDate == __value.weightByDate and \
-            self.selfWeightByDate == __value.selfWeightByDate
+            self.mark == __value.mark
 
     def __ne__(self, __value: object) -> bool:
         """Standart not equals (!=) function implementation"""
@@ -76,12 +70,10 @@ class Kachok:
         """Switches the member's sex"""
         if not self.female:
             self.proteinPoints *= 1.64
-            self.proteinPointsByDate.update((k, v * 1.64) for k, v in self.proteinPointsByDate.items())
             self.female = True
             self.grade()
         else:
             self.proteinPoints /= 1.64
-            self.proteinPointsByDate.update((k, v / 1.64) for k, v in self.proteinPointsByDate.items())
             self.female = False
             self.grade()
 
@@ -107,51 +99,23 @@ class Kachok:
         weight = float(weight)
         self.selfWeight = weight
 
-        # the current date is taken
-        self.selfWeightByDate[time.strftime("%d/%m/%Y")] = weight
-
-    def set_weight(self, weight: float | str):
+    def set_weight(self, weight: float | str, exercise: str):
         """Updates member's lifted weight records
 
         Parameters
         ----------
         weight : float | str
             The lifted weight
+        exercise: str
+            'bench press', 'squat' or 'biceps curl'
         """
         weight = float(weight)
-        # Member's max weight updates if needed
-        self.weight = max(weight, self.weight)
-        # Member's max points updates if needed
-        if self.female:
-            self.proteinPoints = max(self.proteinPoints, weight * 1.64 / self.selfWeight)
-        else:
-            self.proteinPoints = max(self.proteinPoints, weight / self.selfWeight)
-        # the current date is taken
-        date = time.strftime("%d/%m/%Y")
-        if date not in self.weightByDate:
-            self.weightByDate[date] = weight
-            self.proteinPointsByDate[date] = weight / self.selfWeight
-            if self.female:
-                self.proteinPointsByDate[date] *= 1.64
-        else:
-            self.weightByDate[date] = max(weight, self.weightByDate[date])
-            if not self.female:
-                if weight / self.selfWeight > self.proteinPointsByDate[date]:
-                    self.proteinPointsByDate[date] = weight / self.selfWeight
-            else:
-                if weight * 1.64 / self.selfWeight > self.proteinPointsByDate[date]:
-                    self.proteinPointsByDate[date] = weight * 1.64 / self.selfWeight
+        # Member's result updates if needed
+        this_points = weight * 1.64 / self.selfWeight if self.female else weight / self.selfWeight
+        if self.proteinPoints[exercise] <= this_points:
+            self.proteinPoints[exercise] = this_points
+            self.weights[exercise] = max(weight, self.weights[exercise])
         self.grade()
-
-    def set_name(self, name: str):
-        """Sets member's name
-
-        Parameters
-        ----------
-        name : str
-            member's new name
-        """
-        self.name = name
 
     def display(self) -> str:
         """String representation of the member on the top

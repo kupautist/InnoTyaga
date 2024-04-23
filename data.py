@@ -14,6 +14,7 @@ user_dict: dict[str, Message] = {}
 # dictionary of all members in alias:Kachok format, sorted after any changes
 kachki: dict[str, Kachok] = {}
 
+
 class Order(IntEnum):
     PP = auto()
     ALPHABETICAL = auto()
