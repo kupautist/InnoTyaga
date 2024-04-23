@@ -48,7 +48,7 @@ def grading(message: Message) -> None:
     bot.send_message(message.chat.id, get_locale(message).pp)
 
 
-@bot.message_handler(commands=['top'])
+@bot.message_handler(commands=['top'], chat_types=['private'])
 def top(message: Message) -> None:
     """function that display top"""
     global kachki
@@ -64,6 +64,10 @@ def top(message: Message) -> None:
         bot.send_message(message.chat.id, get_locale(message).emptyTop)
     else:
         bot.send_message(message.chat.id, result)
+
+@bot.message_handler(commands=['top'], chat_types=['group', 'supergroup', 'channel'])
+def top(message: Message) -> None:
+    bot.send_message(message.chat.id, "Пошёл нахуй")
 
 
 @bot.message_handler(commands=['register'])
