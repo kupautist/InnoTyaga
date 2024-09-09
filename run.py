@@ -4,7 +4,6 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.WARN
 )
-
 from botInstance import bot
 from commandHandlers import *
 

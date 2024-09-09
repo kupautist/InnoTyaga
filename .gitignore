@@ -1,6 +1,7 @@
 # Custom files
 *.json
 /vip.txt
+*.protein
 
 # Python
 # Byte-compiled / optimized / DLL files

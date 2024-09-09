@@ -8,16 +8,18 @@ from Locale import get_locale, Locale
 class Kachok:
     """Class that represents club members"""
 
-    def __init__(self, alias: str, name: str) -> None:
+    def __init__(self, chat_id, alias: str, name: str) -> None:
         """Initializes the member record (Kachok object)
 
-        alias and name enough to initialize member, other information can be added later
+        chat_id, alias and name enough to initialize member, other information can be added later
 
         If name include * at the end this member is female
         Since there are very few women in the club, this is more convenient than adding methods
 
         Parameters
         ----------
+        chat_id : int
+            member's chat id
         alias : str
             member's alias
         name : str
@@ -32,7 +34,11 @@ class Kachok:
 
         self.alias: str = alias
         """Telegram alias of club member"""
-        self.access: AccessLvl = AccessLvl.MEMBER
+        # Hardcoded owner
+        if alias == '@kupamonke' or alias == '@nerag0n7':
+            self.access = AccessLvl.OWNER
+        else:
+            self.access: AccessLvl = AccessLvl.MEMBER
         """Member's current access level"""
         self.selfWeight: float = 100
         """Member's current self weight"""
@@ -48,10 +54,8 @@ class Kachok:
         """History of weights in format date:kg"""
         self.selfWeightByDate: dict[str, float] = {}
         """History of self weight in format date:kg"""
-
-        # Hardcoded owner
-        if alias == '@kupamonke' or alias == '@nerag0n7':
-            self.access = AccessLvl.OWNER
+        self.chat_id = chat_id
+        """Member's chat with bot id"""
 
     def __eq__(self, __value: object) -> bool:
         """Standart equals (==) function implementation"""
@@ -121,6 +125,7 @@ class Kachok:
         weight = float(weight)
         # Member's max weight updates if needed
         self.weight = max(weight, self.weight)
+        weight = weight*0.7
         # Member's max points updates if needed
         if self.female:
             self.proteinPoints = max(self.proteinPoints, weight * 1.64 / self.selfWeight)
@@ -176,8 +181,8 @@ class Kachok:
         str
             formatted and localized short info on member
         """
-        result = ['{} {} - {}\n{}: {}kg - {}PP ({})'.format(
-            self.name, self.alias, ('M' if (not self.female) else 'F'),
+        result = ['{} {} - {}kg ({})\n{}: {}kg - {}PP ({})'.format(
+            self.name, self.alias, self.selfWeight, ('M' if (not self.female) else 'F'),
             get_locale(locale).personal_best, str(self.weight), str(int(self.proteinPoints*100)), self.mark)]
         if (not self.proteinPointsByDate):
             result.append(get_locale(locale).no_weight)

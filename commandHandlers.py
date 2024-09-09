@@ -10,6 +10,21 @@ from kachok import Kachok
 from Locale import get_locale
 
 
+@bot.message_handler(commands=['aboba'])
+def start(message: Message) -> None:
+    """function that greets the user"""
+    try:
+        trash, date, multy = message.text.split()
+        multy = float(multy)
+        for kachok in kachki.values():
+            if date in kachok.proteinPointsByDate:
+                kachok.proteinPoints *= multy
+                kachok.set_weight(kachok.weightByDate[date])
+        bot.send_message(message.chat.id, 'Успешно')
+    except Exception:
+        bot.send_message(message.chat.id, 'Exception из штанов выпало.\n/aboba date multy eg. /aboba 02/05/2024 1')
+
+
 @bot.message_handler(commands=['start'])
 def start(message: Message) -> None:
     """function that greets the user"""
@@ -76,11 +91,12 @@ def register(message: Message) -> None:
     global kachki
     try:
         # function takes alias and name of user who send this command
+        chat_id =message.chat.id
         alias = '@' + message.from_user.username.lower()
         name = message.from_user.first_name
         # add user to top and sort it
         if alias not in kachki:
-            kachki[alias] = Kachok(alias, name)
+            kachki[chat_id] = Kachok(chat_id, alias, name)
             bot.send_message(message.chat.id, get_locale(message).newMemberSuccess)
             update_records()
         # if user already in top report about it
@@ -97,14 +113,19 @@ def info(message: Message) -> None:
     """function that display personal member profile"""
     global kachki
     try:
-        # function takes alias and name of user who send this command
-        alias = '@' + message.from_user.username.lower()
-        if alias not in kachki:
-            bot.send_message(message.chat.id, get_locale(message).reg)
-        # if user already in top report about it
-        else:
+        try:
+            trash, alias = message.text.split()
             info = kachki[alias].info(message.from_user.language_code)
             bot.send_message(message.chat.id, info)
+        except ValueError:
+            # function takes alias and name of user who send this command
+            alias = '@' + message.from_user.username.lower()
+            if alias not in kachki:
+                bot.send_message(message.chat.id, get_locale(message).reg)
+            # if user already in top report about it
+            else:
+                info = kachki[alias].info(message.from_user.language_code)
+                bot.send_message(message.chat.id, info)
     # report about if happen something unexpected
     except Exception as e:
         logging.error(e)
@@ -419,6 +440,23 @@ def setselfweight_answer_2(message: Message) -> None:
     user_dict[message.from_user.id] = None
 
 
+@bot.message_handler(commands=['addmail'])
+def new_user(message: Message) -> None:
+    """function that add mail"""
+    # @innopolis.university mail requested
+    msg = bot.reply_to(message, get_locale(message).gimme_mail)
+    bot.register_next_step_handler(msg, addmail_answer)
+
+
+def addmail_answer(message: Message) -> None:
+    chat_id = message.chat.id
+    mail = message.text
+    if mail[-21:] != "@innopolis.university":
+        mail += "@innopolis.university"
+    kachki[chat_id].mail = mail
+    bot.send_message(message.chat.id, "Успех")
+
+
 @bot.message_handler(commands=['newuser'])
 def new_user(message: Message) -> None:
     """function that add to top new member"""
@@ -545,7 +583,7 @@ def chaccess_nikulin(message: Message) -> None:
     # add all aliases of all members to reply keyboard
     rmk = message.ReplyKeyboardMarkup(resize_keyboard=True)
     for i in get_sorted(kachki, Order.ALPHABETICAL):
-        rmk.add(i.alias)
+       rmk.add(i.alias)
     # alias requested
     msg = bot.reply_to(message, get_locale(message).enter_alias, reply_markup=rmk)
     bot.register_next_step_handler(msg, chaccess_answer)

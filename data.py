@@ -11,8 +11,8 @@ from kachok import Kachok, KachokEncoder, kachok_decoder
 # used in functions with register_next_step_handler
 user_dict: dict[str, Message] = {}
 
-# dictionary of all members in alias:Kachok format, sorted after any changes
-kachki: dict[str, Kachok] = {}
+# dictionary of all members in chat_id:Kachok format, sorted after any changes
+kachki: dict[int, Kachok] = {}
 
 class Order(IntEnum):
     PP = auto()
