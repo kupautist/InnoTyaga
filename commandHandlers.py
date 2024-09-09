@@ -12,7 +12,7 @@ from Locale import get_locale
 
 @bot.message_handler(commands=['aboba'])
 def start(message: Message) -> None:
-    """function that greets the user"""
+    """function that костыль ебанный"""
     try:
         trash, date, multy = message.text.split()
         multy = float(multy)
@@ -38,14 +38,14 @@ def start(message: Message) -> None:
 @bot.message_handler(commands=['help'])
 def commands_list(message: Message) -> None:
     """function that send to user list of possible commands and their description"""
-    alias = '@' + message.from_user.username.lower()
+    chat_id = message.chat.id
     message.from_user.language_code
-    if alias not in kachki:
-        bot.send_message(message.chat.id, get_locale(message).commands[0])
-        bot.send_message(message.chat.id, get_locale(message).reg)
+    if chat_id not in kachki:
+        bot.send_message(chat_id, get_locale(message).commands[0])
+        bot.send_message(chat_id, get_locale(message).reg)
         return
-    for i in range(0, kachki[alias].access + 1):
-        bot.send_message(message.chat.id,
+    for i in range(0, kachki[chat_id].access + 1):
+        bot.send_message(chat_id,
                          escape_reserved_markdown(get_locale(message).commands[i]),
                          parse_mode='MarkdownV2')
 
@@ -66,7 +66,6 @@ def grading(message: Message) -> None:
 @bot.message_handler(commands=['top'], chat_types=['private'])
 def top(message: Message) -> None:
     """function that display top"""
-    global kachki
     counter = 0
     result = ''
     # display all members
@@ -95,7 +94,7 @@ def register(message: Message) -> None:
         alias = '@' + message.from_user.username.lower()
         name = message.from_user.first_name
         # add user to top and sort it
-        if alias not in kachki:
+        if chat_id not in kachki:
             kachki[chat_id] = Kachok(chat_id, alias, name)
             bot.send_message(message.chat.id, get_locale(message).newMemberSuccess)
             update_records()
