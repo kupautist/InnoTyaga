@@ -9,10 +9,31 @@ from data import Order, get_sorted, kachki, load_kachki, update_records, user_di
 from kachok import Kachok
 from Locale import get_locale
 
+from datetime import datetime
+
+def log_action(message: Message, action: str, extra: str | None = None) -> None:
+    username = getattr(message.from_user, 'username', None)
+    alias = f'@{username.lower()}' if username else '<no_username>'
+    full_name = ' '.join(
+        part for part in [message.from_user.first_name, message.from_user.last_name] if part
+    )
+    text = getattr(message, 'text', None)
+    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+    print(
+        f'[{now}] action={action} | alias={alias} | '
+        f'user_id={message.from_user.id} | name="{full_name}" | '
+        f'chat_id={message.chat.id} | chat_type={message.chat.type} | '
+        f'text={text!r} | extra={extra}',
+        flush=True,
+    )
+
+
 
 @bot.message_handler(commands=['start'])
 def start(message: Message) -> None:
     """function that greets the user"""
+    log_action(message, 'start')
     bot.send_message(message.chat.id, '{}, {} {}{}'.format(
         get_locale(message).greet[0],
         message.from_user.first_name,
@@ -23,6 +44,7 @@ def start(message: Message) -> None:
 @bot.message_handler(commands=['help'])
 def commands_list(message: Message) -> None:
     """function that send to user list of possible commands and their description"""
+    log_action(message, 'commands_list')
     alias = '@' + message.from_user.username.lower()
     message.from_user.language_code
     if alias not in kachki:
@@ -38,6 +60,7 @@ def commands_list(message: Message) -> None:
 @bot.message_handler(commands=['schedule'])
 def schedule(message: Message) -> None:
     """function that send to user schedule of club meetings"""
+    log_action(message, 'schedule')
     bot.send_message(message.chat.id, escape_markdown(get_locale(message).schedule),
                      parse_mode='MarkdownV2')
 
@@ -45,12 +68,14 @@ def schedule(message: Message) -> None:
 @bot.message_handler(commands=['pp'])
 def grading(message: Message) -> None:
     """function that send to user grading information"""
+    log_action(message, 'grading')
     bot.send_message(message.chat.id, get_locale(message).pp)
 
 
 @bot.message_handler(commands=['top'], chat_types=['private'])
 def top(message: Message) -> None:
     """function that display top"""
+    log_action(message, 'top')
     global kachki
     counter = 0
     result = ''
@@ -67,12 +92,14 @@ def top(message: Message) -> None:
 
 @bot.message_handler(commands=['top'], chat_types=['group', 'supergroup', 'channel'])
 def top(message: Message) -> None:
+    log_action(message, 'top')
     bot.send_message(message.chat.id, "Пошёл нахуй")
 
 
 @bot.message_handler(commands=['register'])
 def register(message: Message) -> None:
     """function that add to top member who send "/register" message"""
+    log_action(message, 'register')
     global kachki
     try:
         # function takes alias and name of user who send this command
@@ -95,6 +122,7 @@ def register(message: Message) -> None:
 @bot.message_handler(commands=['info'])
 def info(message: Message) -> None:
     """function that display personal member profile"""
+    log_action(message, 'info')
     global kachki
     try:
         # function takes alias and name of user who send this command
@@ -114,6 +142,7 @@ def info(message: Message) -> None:
 @bot.message_handler(commands=['olduser'])
 def old_user(message: Message) -> None:
     """part 1 of function that add to top old member"""
+    log_action(message, 'old_user')
     # only several users can use this command
     global kachki
     if not has_access(kachki, message.from_user.username.lower(), AccessLvl.VIP):
@@ -126,6 +155,7 @@ def old_user(message: Message) -> None:
 
 def olduser_answer(message: Message) -> None:
     """part 2 of function that add to top old member"""
+    log_action(message, 'olduser_answer')
     # alias can be written in both ways: with and without @, next if-else handles both
     # member's alias saved
     global user_dict, kachki
@@ -142,6 +172,7 @@ def olduser_answer(message: Message) -> None:
 
 def olduser_answer_2(message: Message) -> None:
     """part 3 of function that add to top old member"""
+    log_action(message, 'olduser_answer_2')
     # check if name too long
     global user_dict
     if len(message.text) > 16:
@@ -157,6 +188,7 @@ def olduser_answer_2(message: Message) -> None:
 
 def olduser_answer_3(message: Message) -> None:
     """part 4 of function that add to top old member"""
+    log_action(message, 'olduser_answer_3')
     # check if self weight format incorrect
     global user_dict
     try:
@@ -175,6 +207,7 @@ def olduser_answer_3(message: Message) -> None:
 
 def olduser_answer_4(message: Message) -> None:
     """part 5 of function that add to top old member"""
+    log_action(message, 'olduser_answer_4')
     global user_dict, kachki
     # check if weight format incorrect
     try:
@@ -207,6 +240,7 @@ def olduser_answer_4(message: Message) -> None:
 @bot.message_handler(commands=['changename'])
 def change_name(message: Message) -> None:
     """function that change member's name"""
+    log_action(message, 'change_name')
     # only several users can use this command
     global kachki
     if not has_access(kachki, message.from_user.username.lower(), AccessLvl.VIP):
@@ -223,6 +257,7 @@ def change_name(message: Message) -> None:
 
 def change_name_answer(message: Message) -> None:
     """next part of change_name"""
+    log_action(message, 'change_name_answer')
     global kachki
     # report if user with such alias not registered
     if message.text not in kachki:
@@ -239,6 +274,7 @@ def change_name_answer(message: Message) -> None:
 
 def change_name_answer_2(message: Message) -> None:
     """next part of change_name_answer"""
+    log_action(message, 'change_name_answer_2')
     # check if name too long
     if len(message.text) > 16:
         msg = bot.reply_to(message, get_locale(message).long_name)
@@ -263,6 +299,7 @@ def change_name_answer_2(message: Message) -> None:
 @bot.message_handler(commands=['makefemale'])
 def make_female(message: Message) -> None:
     """function that can be helpful if * forgotten while adding female member"""
+    log_action(message, 'make_female')
     # only several users can use this command
     global kachki
     if not has_access(kachki, message.from_user.username.lower(), AccessLvl.VIP):
@@ -279,6 +316,7 @@ def make_female(message: Message) -> None:
 
 def make_female_answer(message: Message) -> None:
     """next part of make_female"""
+    log_action(message, 'make_female_answer')
     # report if user with such alias not registered
     global kachki
     if message.text not in kachki:
@@ -306,6 +344,7 @@ def make_female_answer(message: Message) -> None:
 @bot.message_handler(commands=['setweight'])
 def set_weight(message: Message) -> None:
     """function that used to change member weight"""
+    log_action(message, 'set_weight')
     # only several users can use this command
     global kachki
     if not has_access(kachki, message.from_user.username.lower(), AccessLvl.VIP):
@@ -322,6 +361,7 @@ def set_weight(message: Message) -> None:
 
 def set_weight_answer(message: Message) -> None:
     """next part of set_weight"""
+    log_action(message, 'set_weight_answer')
     # report if user with such alias not registered
     global user_dict, kachki
     if message.text not in kachki:
@@ -338,6 +378,7 @@ def set_weight_answer(message: Message) -> None:
 
 def set_weight_answer_2(message: Message) -> None:
     """next part of set_weight_answer"""
+    log_action(message, 'set_weight_answer_2')
     # check if weight format incorrect
     try:
         float(message.text)
@@ -365,6 +406,7 @@ def set_weight_answer_2(message: Message) -> None:
 @bot.message_handler(commands=['setselfweight'])
 def set_self_weight(message: Message) -> None:
     """function for changing member self weight"""
+    log_action(message, 'set_self_weight')
     # only several users can use this command
     global kachki
     if not has_access(kachki, message.from_user.username.lower(), AccessLvl.VIP):
@@ -381,6 +423,7 @@ def set_self_weight(message: Message) -> None:
 
 def setselfweight_answer(message: Message) -> None:
     """next part of set_self_weight"""
+    log_action(message, 'setselfweight_answer')
     # report if user with such alias not registered
     global user_dict, kachki
     if message.text not in kachki:
@@ -396,6 +439,7 @@ def setselfweight_answer(message: Message) -> None:
 
 def setselfweight_answer_2(message: Message) -> None:
     """next part of setselfweight_answer"""
+    log_action(message, 'setselfweight_answer_2')
     # check if weight format inncorrect
     try:
         float(message.text)
@@ -422,6 +466,7 @@ def setselfweight_answer_2(message: Message) -> None:
 @bot.message_handler(commands=['newuser'])
 def new_user(message: Message) -> None:
     """function that add to top new member"""
+    log_action(message, 'new_user')
     # only several users can use this command
     if not has_access(kachki, message.from_user.username.lower(), AccessLvl.VIP):
         bot.send_message(message.chat.id, get_locale(message).accessDenied)
@@ -433,6 +478,7 @@ def new_user(message: Message) -> None:
 
 def new_user_answer(message: Message) -> None:
     """next part of new_user"""
+    log_action(message, 'new_user_answer')
     # alias can be written in both ways: with and without @, next if-else handles both ways
     global user_dict
     alias = ('@' + message.text if message.text[0] != '@' else message.text).lower()
@@ -444,6 +490,7 @@ def new_user_answer(message: Message) -> None:
 
 def new_user_answer_2(message: Message) -> None:
     """next part of new_user_answer"""
+    log_action(message, 'new_user_answer_2')
     global kachki, user_dict
     try:
         # add to the top new Kachok with received alias and name
@@ -467,6 +514,7 @@ def new_user_answer_2(message: Message) -> None:
 @bot.message_handler(commands=['danilnikulin', 'DanilNikulin'])
 def danil_nikulin(message: Message) -> None:
     """DanilNikulin"""
+    log_action(message, 'danil_nikulin')
     for i in range(10):
         bot.send_message(message.chat.id, get_locale(message).nikulin)
 
@@ -474,6 +522,7 @@ def danil_nikulin(message: Message) -> None:
 @bot.message_handler(commands=['delete'])
 def delete_nikulin(message: Message) -> None:
     """function that make able to delete members from top"""
+    log_action(message, 'delete_nikulin')
     # only several users can use this command
     global kachki
     if not has_access(kachki, message.from_user.username.lower(), AccessLvl.VIP):
@@ -490,6 +539,7 @@ def delete_nikulin(message: Message) -> None:
 
 def delete_answer(message: Message) -> None:
     """next part of delete_nikulin"""
+    log_action(message, 'delete_answer')
     # clear reply keyboard
     rmk = ReplyKeyboardRemove(selective=False)
     # if member with such alias do not registered, report about it
@@ -513,6 +563,7 @@ def delete_answer(message: Message) -> None:
 @bot.message_handler(commands=['reload'])
 def reload(message: Message) -> None:
     """reloads the data from db"""
+    log_action(message, 'reload')
     # only several users can use this command
     global kachki
     if not has_access(kachki, message.from_user.username.lower(), AccessLvl.OWNER):
@@ -525,6 +576,7 @@ def reload(message: Message) -> None:
 @bot.message_handler(commands=['stop'])
 def stop(message: Message) -> None:
     """reloads the data from db"""
+    log_action(message, 'stop')
     # only several users can use this command
     global kachki
     if not has_access(kachki, message.from_user.username.lower(), AccessLvl.OWNER):
@@ -537,6 +589,7 @@ def stop(message: Message) -> None:
 @bot.message_handler(commands=['chaccess'])
 def chaccess_nikulin(message: Message) -> None:
     """changes access level of a member"""
+    log_action(message, 'chaccess_nikulin')
     # only several users can use this command
     global kachki
     if not has_access(kachki, message.from_user.username.lower(), AccessLvl.OWNER):
@@ -552,6 +605,7 @@ def chaccess_nikulin(message: Message) -> None:
 
 
 def chaccess_answer(message: Message) -> None:
+    log_action(message, 'chaccess_answer')
     global user_dict
     alias = '@' + message.text if message.text[0] != '@' else message.text
     user_dict[message.from_user.id] = alias
@@ -566,6 +620,7 @@ def chaccess_answer(message: Message) -> None:
 
 
 def chaccess_answer_2(message: Message) -> None:
+    log_action(message, 'chaccess_answer_2')
     global kachki, user_dict
     rmk = ReplyKeyboardRemove(selective=False)
     try:
@@ -582,10 +637,12 @@ def chaccess_answer_2(message: Message) -> None:
 @bot.message_handler(content_types=['photo'], chat_types=['private'])
 def photo(message: Message) -> None:
     """function that handles photos"""
+    log_action(message, 'photo')
     bot.reply_to(message, get_locale(message).goodPhoto)
 
 
 @bot.message_handler(chat_types=['private'])
 def wrong_command(message: Message) -> None:
     """function that send to user information that such command did not exist"""
+    log_action(message, 'wrong_command')
     bot.send_message(message.chat.id, get_locale(message).command_unknown)
