@@ -213,7 +213,7 @@ def change_name(message: Message) -> None:
         bot.send_message(message.chat.id, get_locale(message).accessDenied)
         return
     # add all aliases of all members to reply keyboard
-    rmk = message.ReplyKeyboardMarkup(resize_keyboard=True)
+    rmk = ReplyKeyboardMarkup(resize_keyboard=True)
     for i in get_sorted(kachki, Order.ALPHABETICAL):
         rmk.add(i.alias)
     # alias requested
@@ -543,7 +543,7 @@ def chaccess_nikulin(message: Message) -> None:
         bot.send_message(message.chat.id, get_locale(message).accessDenied)
         return
     # add all aliases of all members to reply keyboard
-    rmk = message.ReplyKeyboardMarkup(resize_keyboard=True)
+    rmk = ReplyKeyboardMarkup(resize_keyboard=True)
     for i in get_sorted(kachki, Order.ALPHABETICAL):
         rmk.add(i.alias)
     # alias requested
@@ -557,7 +557,7 @@ def chaccess_answer(message: Message) -> None:
     user_dict[message.from_user.id] = alias
     # add all access levels to reply keyboard
     levels = [i.name for i in AccessLvl]
-    rmk = message.ReplyKeyboardMarkup(resize_keyboard=True)
+    rmk = ReplyKeyboardMarkup(resize_keyboard=True)
     for i in levels:
         rmk.add(i)
     # alias requested
