@@ -1,7 +1,7 @@
 import logging
 
 from telebot.types import Message, ReplyKeyboardMarkup, ReplyKeyboardRemove
-from telebot.formatting import escape_reserved_markdown
+from telebot.formatting import escape_markdown
 
 from access import AccessLvl, access_from_str, has_access
 from botInstance import bot
@@ -31,14 +31,14 @@ def commands_list(message: Message) -> None:
         return
     for i in range(0, kachki[alias].access + 1):
         bot.send_message(message.chat.id,
-                         escape_reserved_markdown(get_locale(message).commands[i]),
+                         escape_markdown(get_locale(message).commands[i]),
                          parse_mode='MarkdownV2')
 
 
 @bot.message_handler(commands=['schedule'])
 def schedule(message: Message) -> None:
     """function that send to user schedule of club meetings"""
-    bot.send_message(message.chat.id, escape_reserved_markdown(get_locale(message).schedule),
+    bot.send_message(message.chat.id, escape_markdown(get_locale(message).schedule),
                      parse_mode='MarkdownV2')
 
 
